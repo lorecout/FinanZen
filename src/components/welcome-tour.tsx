@@ -2,7 +2,6 @@
 "use client"
 
 import React, { useState, useCallback } from 'react';
-import Image from 'next/image';
 import type { EmblaCarouselType } from 'embla-carousel-react';
 import {
   Dialog,
@@ -22,6 +21,7 @@ import {
 import { Button } from './ui/button';
 import Logo from './logo';
 import { Card, CardContent } from './ui/card';
+import { Sparkles, LayoutGrid, Wallet, Settings, Target, ShoppingCart, Lightbulb, type LucideIcon } from 'lucide-react';
 
 type WelcomeTourProps = {
   open: boolean;
@@ -29,34 +29,32 @@ type WelcomeTourProps = {
   onComplete: () => void;
 };
 
-const tourSteps = [
+type TourStep = {
+    icon: LucideIcon;
+    title: string;
+    description: string;
+}
+
+const tourSteps: TourStep[] = [
   {
-    title: "Bem-vindo(a) ao FinanZen!",
-    description: "Seu novo assistente financeiro inteligente. Vamos fazer um tour rápido pelas principais funcionalidades.",
-    image: "/tour-1.png",
-    alt: "Tela de boas-vindas do FinanZen",
-    hint: "welcome screen app"
-  },
-  {
+    icon: Sparkles,
     title: "Adicione Transações com IA",
-    description: "No Dashboard, use a caixa de texto para adicionar despesas ou receitas. Nossa IA entende o que você digita e organiza tudo para você.",
-    image: "/tour-2.png",
-    alt: "Demonstração da adição de transação com IA",
-    hint: "AI transaction input"
+    description: "No Dashboard, use a caixa de texto para adicionar despesas ou receitas. Nossa IA entende o que você digita e organiza tudo para você."
   },
   {
-    title: "Organize-se com Facilidade",
-    description: "Use o menu de navegação para acessar e gerenciar suas Contas, Metas de economia e sua Lista de Compras.",
-    image: "/tour-3.png",
-    alt: "Menu de navegação do aplicativo",
-    hint: "app navigation menu"
+    icon: LayoutGrid,
+    title: "Navegue com Facilidade",
+    description: "Use o menu de navegação para acessar e gerenciar suas Contas, Metas de economia e sua Lista de Compras, tudo em um só lugar."
   },
   {
+    icon: Lightbulb,
+    title: "Receba Insights Inteligentes",
+    description: "Assine o plano Premium para que nossa IA analise suas finanças e ofereça dicas valiosas para você economizar e atingir seus objetivos mais rápido."
+  },
+  {
+    icon: Settings,
     title: "Explore e Personalize",
-    description: "Acesse as Configurações para personalizar o tema e conhecer nossos planos Premium para ter acesso a insights exclusivos. Você está pronto para começar!",
-    image: "/tour-4.png",
-    alt: "Tela de configurações do aplicativo",
-    hint: "app settings page"
+    description: "Acesse as Configurações para personalizar a aparência do aplicativo e gerenciar seu plano. Você está pronto para começar!"
   }
 ];
 
@@ -87,40 +85,43 @@ export default function WelcomeTour({ open, onOpenChange, onComplete }: WelcomeT
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md p-0">
+        <div className="p-6 flex flex-col items-center text-center">
+             <div className="mb-4">
+               <Logo />
+             </div>
+              <DialogHeader className='mb-4'>
+                <DialogTitle className='text-xl font-headline'>Bem-vindo(a) ao FinanZen!</DialogTitle>
+                <DialogDescription>Seu novo assistente financeiro inteligente. Vamos fazer um tour rápido.</DialogDescription>
+              </DialogHeader>
+        </div>
         <Carousel setApi={setApi} className="w-full">
           <CarouselContent>
-            {tourSteps.map((step, index) => (
-              <CarouselItem key={index}>
-                <div className="p-6 flex flex-col items-center text-center">
-                   <div className="mb-4">
-                     <Logo />
-                   </div>
-                   <Card className="w-full aspect-video overflow-hidden mb-4 border-dashed">
-                    <CardContent className='p-0'>
-                       <Image
-                          src={`https://placehold.co/400x225.png?text=${encodeURIComponent(step.title)}`}
-                          alt={step.alt}
-                          width={400}
-                          height={225}
-                          className="object-cover"
-                          data-ai-hint={step.hint}
-                        />
-                    </CardContent>
-                   </Card>
-                  <DialogHeader>
-                    <DialogTitle className='text-xl font-headline'>{step.title}</DialogTitle>
-                    <DialogDescription>{step.description}</DialogDescription>
-                  </DialogHeader>
-                </div>
-              </CarouselItem>
-            ))}
+            {tourSteps.map((step, index) => {
+                const Icon = step.icon;
+                return (
+                     <CarouselItem key={index}>
+                        <div className="p-6 pt-0 text-center">
+                            <Card className="w-full h-36 flex flex-col items-center justify-center border-dashed mb-4">
+                                <CardContent className='p-0 flex flex-col items-center justify-center gap-2'>
+                                    <Icon className="w-12 h-12 text-primary/80" />
+                                </CardContent>
+                            </Card>
+                            <DialogHeader>
+                                <DialogTitle className='text-lg font-headline'>{step.title}</DialogTitle>
+                                <DialogDescription>{step.description}</DialogDescription>
+                            </DialogHeader>
+                        </div>
+                    </CarouselItem>
+                )
+            })}
           </CarouselContent>
-          <div className='absolute left-1/2 -translate-x-1/2 bottom-20'>
+           <div className='absolute left-1/2 -translate-x-1/2 bottom-[100px] hidden sm:block'>
             <CarouselPrevious />
             <CarouselNext />
           </div>
         </Carousel>
-        <DialogFooter className="flex-row justify-between w-full p-6 pt-0">
+
+        <DialogFooter className="flex-row justify-between w-full items-center p-6 pt-0 border-t">
            <Button variant="ghost" onClick={handleClose}>
             Pular
           </Button>
@@ -128,12 +129,12 @@ export default function WelcomeTour({ open, onOpenChange, onComplete }: WelcomeT
               {tourSteps.map((_, i) => (
                 <div
                     key={i}
-                    className={`h-2 w-2 rounded-full ${i === current ? 'bg-primary' : 'bg-muted'}`}
+                    className={`h-2 w-2 rounded-full transition-all ${i === current ? 'bg-primary scale-125' : 'bg-muted'}`}
                 />
                 ))}
           </div>
           <Button onClick={isLastStep ? handleClose : () => api?.scrollNext()}>
-            {isLastStep ? "Concluir" : "Próximo"}
+            {isLastStep ? "Começar!" : "Próximo"}
           </Button>
         </DialogFooter>
       </DialogContent>
