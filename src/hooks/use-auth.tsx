@@ -2,38 +2,45 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import type { User } from 'firebase/auth';
+import { 
+    getAuth,
+    onAuthStateChanged,
+    User,
+    signInWithPopup,
+    GoogleAuthProvider,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    AuthError
+} from 'firebase/auth';
+import { auth } from '@/lib/firebase/client-app';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
-// Mock User object that matches Firebase's User type shape
-const mockUser: User = {
-  uid: 'mock-user-id',
-  email: 'mock@user.com',
-  displayName: 'Usuário Mock',
-  photoURL: null,
-  emailVerified: true,
-  isAnonymous: false,
-  metadata: {
-    creationTime: new Date().toISOString(),
-    lastSignInTime: new Date().toISOString(),
-  },
-  providerData: [],
-  providerId: 'password',
-  tenantId: null,
-  delete: () => Promise.resolve(),
-  getIdToken: () => Promise.resolve('mock-token'),
-  getIdTokenResult: () => Promise.resolve({
-    token: 'mock-token',
-    expirationTime: new Date().toISOString(),
-    authTime: new Date().toISOString(),
-    issuedAtTime: new Date().toISOString(),
-    signInProvider: 'password',
-    signInSecondFactor: null,
-    claims: {},
-  }),
-  reload: () => Promise.resolve(),
-  toJSON: () => ({}),
-};
+// Firebase error handler
+const getFirebaseAuthErrorMessage = (error: any): string => {
+    if (error.code) {
+        switch (error.code) {
+            case 'auth/invalid-email':
+                return 'O formato do email é inválido.';
+            case 'auth/user-disabled':
+                return 'Este usuário foi desabilitado.';
+            case 'auth/user-not-found':
+                return 'Nenhum usuário encontrado com este email.';
+            case 'auth/wrong-password':
+                return 'Senha incorreta. Tente novamente.';
+            case 'auth/email-already-in-use':
+                return 'Este email já está sendo usado por outra conta.';
+            case 'auth/weak-password':
+                return 'A senha é muito fraca. Tente uma senha mais forte.';
+            case 'auth/popup-closed-by-user':
+                return 'O processo de login com Google foi cancelado.';
+            default:
+                return 'Ocorreu um erro desconhecido. Tente novamente.';
+        }
+    }
+    return error.message;
+}
 
 
 interface AuthContextType {
@@ -53,40 +60,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is "logged in" from a previous session (using localStorage)
-    const storedUser = localStorage.getItem('finanzen-user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+      if(user) {
+        router.push('/');
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [router]);
 
   const login = async (email: string, pass: string) => {
-    setLoading(true);
-    // Simulate network delay
-    await new Promise(res => setTimeout(res, 500));
-    setUser(mockUser);
-    localStorage.setItem('finanzen-user', JSON.stringify(mockUser));
-    setLoading(false);
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error: any) {
+        throw new Error(getFirebaseAuthErrorMessage(error));
+    }
   };
   
   const loginWithGoogle = async () => {
-    // This now behaves the same as regular login
-    await login('mock@google.com', 'password');
+    const provider = new GoogleAuthProvider();
+    try {
+        await signInWithPopup(auth, provider);
+    } catch (error: any) {
+        throw new Error(getFirebaseAuthErrorMessage(error));
+    }
   };
 
   const signup = async (email: string, pass: string) => {
-     await login(email, pass);
+     try {
+        await createUserWithEmailAndPassword(auth, email, pass);
+    } catch (error: any) {
+        throw new Error(getFirebaseAuthErrorMessage(error));
+    }
   };
 
   const logout = async () => {
-    setLoading(true);
-     await new Promise(res => setTimeout(res, 500));
-    setUser(null);
-    localStorage.removeItem('finanzen-user');
-    setLoading(false);
-    router.push('/login');
+    try {
+        await signOut(auth);
+        router.push('/login');
+    } catch (error: any) {
+         throw new Error(getFirebaseAuthErrorMessage(error));
+    }
   };
+  
+  // This wrapper ensures that children are only rendered when loading is complete
+  if (loading) {
+     return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, signup, logout }}>
