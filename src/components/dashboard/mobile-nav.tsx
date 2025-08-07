@@ -43,12 +43,6 @@ export default function MobileNav() {
             </div>
           </Link>
         ))}
-         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 transform">
-          <Button size="icon" className="rounded-full h-14 w-14 shadow-lg">
-            <Plus className="h-7 w-7" />
-            <span className="sr-only">Adicionar Transação</span>
-          </Button>
-        </div>
       </nav>
     </div>
   )
