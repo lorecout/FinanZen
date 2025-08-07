@@ -79,5 +79,3 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
     </form>
   );
 }
-
-    
