@@ -18,7 +18,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Logo from '@/components/logo';
-import { navItems as getNavItems } from '@/components/dashboard/mobile-nav';
+import { getNavItems } from '@/components/dashboard/mobile-nav';
 import type { Bill } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -289,7 +289,7 @@ export default function BillsPage() {
                                                 <DropdownMenuSeparator />
                                                 <AlertDialog>
                                                   <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" className="w-full justify-start text-sm text-destructive font-normal p-2 m-0 h-auto hover:bg-destructive/10">
+                                                    <Button variant="ghost" className="w-full justify-start text-sm text-destructive font-normal p-2 m-0 h-auto hover:bg-destructive/10 hover:text-destructive">
                                                       <Trash2 className="mr-2 h-4 w-4" /> Excluir
                                                     </Button>
                                                   </AlertDialogTrigger>
@@ -321,5 +321,3 @@ export default function BillsPage() {
     </div>
   )
 }
-
-    
