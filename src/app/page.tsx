@@ -1,26 +1,17 @@
 
 "use client"
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import Link from "next/link"
 import {
   CircleUser,
-  CreditCard,
-  DollarSign,
-  Landmark,
   Menu,
+  Loader2,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
+import dynamic from 'next/dynamic';
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,19 +21,27 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import SummaryCard from '@/components/dashboard/summary-card';
-import ExpenseChart from '@/components/dashboard/expense-chart';
-import RecentTransactions from '@/components/dashboard/recent-transactions';
-import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import Logo from '@/components/logo';
-import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
-import { type Transaction, type Goal } from '@/types';
 import { getNavItems } from '@/components/dashboard/mobile-nav';
-import { usePathname } from 'next/navigation';
-import GoalsSummary from '@/components/dashboard/goals-summary';
 import MobileNav from '@/components/dashboard/mobile-nav';
 import AuthGuard from '@/components/auth-guard';
 import { useAuth } from '@/hooks/use-auth';
+import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
+
+// Dynamic imports for view components
+const DashboardView = dynamic(() => import('@/components/views/dashboard-view'), {
+  loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>,
+});
+const BillsView = dynamic(() => import('@/components/views/bills-view'), {
+  loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>,
+});
+const GoalsView = dynamic(() => import('@/components/views/goals-view'), {
+  loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>,
+});
+const ShoppingListView = dynamic(() => import('@/components/views/shopping-list-view'), {
+  loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>,
+});
+
 
 const initialTransactions: Transaction[] = [
   {
@@ -64,82 +63,90 @@ const initialGoals: Goal[] = [
     },
 ];
 
+const initialBills: Bill[] = [
+    {
+      id: uuidv4(),
+      name: "Conta de Internet",
+      amount: 99.90,
+      dueDate: "2024-07-30",
+      status: 'due'
+    },
+];
+
+const initialShoppingItems: ShoppingItem[] = [
+    { id: uuidv4(), name: "Leite", checked: false },
+];
+
 
 function DashboardPage() {
+  const { logout } = useAuth();
+  
+  const [activeView, setActiveView] = useState('dashboard');
+
+  // States for all data
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
-  const { logout } = useAuth();
+  const [bills, setBills] = useState<Bill[]>(initialBills);
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(initialShoppingItems);
 
-  const handleAddTransaction = (newTransactionData: AnalyzeTransactionOutput) => {
-    const newTransaction: Transaction = {
-      id: uuidv4(),
-      ...newTransactionData,
-      date: new Date().toISOString(),
-      type: newTransactionData.description.toLowerCase().includes('salário') || newTransactionData.description.toLowerCase().includes('renda') ? 'income' : 'expense',
-      amount: newTransactionData.amount
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-  };
-
-  const handleDeleteTransaction = (idToDelete: string) => {
-    setTransactions(prev => prev.filter((tx) => tx.id !== idToDelete));
-  };
-
-  const handleContributeToGoal = (goalId: string, amount: number) => {
-    const goal = goals.find(g => g.id === goalId);
-    if (!goal) return;
-
-    // Add to goal
-    setGoals(prevGoals =>
-      prevGoals.map(g =>
-        g.id === goalId ? { ...g, currentAmount: g.currentAmount + amount } : g
-      )
-    );
-
-    // Create new expense transaction
-    const newTransaction: Transaction = {
-      id: uuidv4(),
-      amount: amount,
-      description: `Contribuição para: ${goal.name}`,
-      category: 'Metas',
-      date: new Date().toISOString(),
-      type: 'expense'
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-  };
-  
-  const summary = useMemo(() => {
-    const income = transactions
-      .filter(t => t.type === 'income')
-      .reduce((acc, t) => acc + t.amount, 0);
-    const expense = transactions
-      .filter(t => t.type === 'expense')
-      .reduce((acc, t) => acc + t.amount, 0);
-    const balance = income - expense;
-    return { income, expense, balance };
-  }, [transactions]);
-  
   const navItems = useMemo(() => getNavItems(), []);
-  const pathname = usePathname();
 
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       {navItems.map((item) => {
-        if(item.label === 'Adicionar') return null;
-        const isActive = pathname === item.href;
+        if(item.id === 'add') return null;
+        if(item.id === 'settings') {
+             return (
+                <Link
+                    key={item.id}
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary`}
+                >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                </Link>
+             )
+        }
+        const isActive = activeView === item.id;
         return (
-            <Link
-            key={item.label}
-            href={item.href}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive ? 'bg-muted text-primary' : ''}`}
+            <Button
+              key={item.id}
+              variant="ghost"
+              onClick={() => setActiveView(item.id)}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary justify-start ${isActive ? 'bg-muted text-primary' : ''}`}
             >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-            </Link>
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </Button>
         )
       })}
     </nav>
   );
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'dashboard':
+        return <DashboardView 
+                transactions={transactions} 
+                setTransactions={setTransactions} 
+                goals={goals} 
+                setGoals={setGoals}
+               />;
+      case 'bills':
+        return <BillsView bills={bills} setBills={setBills} />;
+      case 'goals':
+        return <GoalsView goals={goals} setGoals={setGoals} />;
+      case 'shopping':
+        return <ShoppingListView items={shoppingItems} setItems={setShoppingItems} />;
+      default:
+        return <DashboardView 
+                transactions={transactions} 
+                setTransactions={setTransactions} 
+                goals={goals} 
+                setGoals={setGoals}
+               />;
+    }
+  }
 
 
   return (
@@ -178,7 +185,9 @@ function DashboardPage() {
           </Sheet>
 
           <div className="w-full flex-1">
-            <h1 className="text-lg font-semibold md:text-2xl font-headline hidden md:block">Dashboard</h1>
+             <h1 className="text-lg font-semibold md:text-2xl font-headline hidden md:block">
+               {navItems.find(item => item.id === activeView)?.label}
+            </h1>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -198,59 +207,17 @@ function DashboardPage() {
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 pb-24">
-           <h1 className="text-lg font-semibold md:text-2xl font-headline md:hidden">Dashboard</h1>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-             <SummaryCard 
-              title="Receitas" 
-              value={`R$ ${summary.income.toFixed(2).replace('.', ',')}`} 
-              icon={DollarSign} 
-            />
-            <SummaryCard 
-              title="Despesas" 
-              value={`R$ ${summary.expense.toFixed(2).replace('.', ',')}`} 
-              icon={CreditCard} 
-            />
-            <SummaryCard 
-              title="Saldo Atual" 
-              value={`R$ ${summary.balance.toFixed(2).replace('.', ',')}`} 
-              icon={Landmark} 
-              className="sm:col-span-2 lg:col-span-2" 
-            />
-          </div>
-          <div id="add-transaction-form" className="grid gap-4 md:gap-6 lg:grid-cols-5">
-             <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle className="font-headline text-xl">Adicionar Transação</CardTitle>
-                <CardDescription>
-                  Use a IA para adicionar despesas ou receitas de forma rápida.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AiTransactionForm onAddTransaction={handleAddTransaction} />
-              </CardContent>
-            </Card>
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="font-headline text-xl">Despesas</CardTitle>
-                 <CardDescription>Distribuição de gastos do mês.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ExpenseChart transactions={transactions} />
-              </CardContent>
-            </Card>
-          </div>
-           <div className="grid gap-4 md:gap-6">
-            <GoalsSummary goals={goals} onContribute={handleContributeToGoal} />
-            <RecentTransactions transactions={transactions} onDelete={handleDeleteTransaction} />
-          </div>
+           <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+            {renderActiveView()}
+          </Suspense>
         </main>
       </div>
-      <MobileNav />
+      <MobileNav activeView={activeView} setActiveView={setActiveView} />
     </div>
   )
 }
 
-export default function Dashboard() {
+export default function Home() {
   return (
     <AuthGuard>
       <DashboardPage />

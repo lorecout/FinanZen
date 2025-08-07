@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Logo from '@/components/logo';
-import MobileNav, { getNavItems } from '@/components/dashboard/mobile-nav';
+import { getNavItems } from '@/components/dashboard/mobile-nav';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { Label } from '@/components/ui/label';
@@ -89,11 +89,12 @@ function SettingsPage() {
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       {navItems.map((item) => {
         if(item.label === 'Adicionar') return null;
+        let href = item.id === 'settings' ? item.href : '/';
         const isActive = item.href === '/configuracoes';
         return (
             <Link
             key={item.label}
-            href={item.href}
+            href={href}
             className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive ? 'bg-muted text-primary' : ''}`}
             >
             <item.icon className="h-4 w-4" />
@@ -258,7 +259,6 @@ function SettingsPage() {
             </Card>
         </main>
       </div>
-      <MobileNav />
     </div>
   )
 }
