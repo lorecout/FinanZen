@@ -222,14 +222,14 @@ function SettingsPage() {
                     <Card className='flex flex-col'>
                         <CardHeader>
                             <CardTitle className='text-xl font-headline'>Gratuito</CardTitle>
-                            <CardDescription>O essencial para organizar suas finanças, com suporte de anúncios.</CardDescription>
+                            <CardDescription>O essencial para organizar suas finanças manualmente, com suporte de anúncios.</CardDescription>
                         </CardHeader>
                         <CardContent className='flex-grow'>
                             <p className="text-2xl font-bold">R$ 0<span className='text-sm font-normal text-muted-foreground'>/mês</span></p>
                             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                                 <li className="flex items-start gap-2">
                                     <CheckCircle className="h-4 w-4 mt-1 text-green-500 shrink-0" />
-                                    <span>Controle de transações, metas, contas e lista de compras.</span>
+                                    <span>Inclusão manual e controle de transações, metas, contas e lista de compras.</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <XCircle className="h-4 w-4 mt-1 text-destructive shrink-0" />
@@ -251,7 +251,7 @@ function SettingsPage() {
                         <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">MAIS POPULAR</div>
                         <CardHeader>
                             <CardTitle className='text-xl font-headline'>Premium</CardTitle>
-                            <CardDescription>Sua experiência completa para dominar suas finanças.</CardDescription>
+                            <CardDescription>Sua experiência completa para dominar suas finanças, com um toque de inteligência.</CardDescription>
                         </CardHeader>
                         <CardContent className='flex-grow'>
                             <p className="text-2xl font-bold">R$ 9,90<span className='text-sm font-normal text-muted-foreground'>/mês</span></p>
@@ -272,7 +272,7 @@ function SettingsPage() {
                         </CardContent>
                         <CardFooter>
                              <Button className='w-full'>
-                                <Zap className='mr-2 h-4 w-4' /> Fazer Upgrade para Premium
+                                <Zap className='mr-2 h-4 w-4' /> Testar Premium por 30 Dias Grátis
                             </Button>
                         </CardFooter>
                     </Card>
