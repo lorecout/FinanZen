@@ -61,7 +61,8 @@ import type { Goal } from '@/types';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
-
+import AuthGuard from '@/components/auth-guard';
+import { useAuth } from '@/hooks/use-auth';
 
 const initialGoals: Goal[] = [
     {
@@ -198,9 +199,9 @@ function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; on
 }
 
 
-export default function GoalsPage() {
+function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
-
+  const { logout } = useAuth();
   const navItems = useMemo(() => getNavItems(), []);
   const pathname = usePathname();
 
@@ -305,7 +306,7 @@ export default function GoalsPage() {
               <DropdownMenuItem asChild><Link href="/configuracoes">Configurações</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><a href="mailto:suporte@finanzen.com">Suporte</a></DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild><Link href="/login">Sair</Link></DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -411,4 +412,13 @@ export default function GoalsPage() {
       <MobileNav />
     </div>
   )
+}
+
+
+export default function Goals() {
+    return (
+        <AuthGuard>
+            <GoalsPage />
+        </AuthGuard>
+    )
 }

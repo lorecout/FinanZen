@@ -47,10 +47,13 @@ import { usePathname } from 'next/navigation';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import AuthGuard from '@/components/auth-guard';
+import { useAuth } from '@/hooks/use-auth';
 
-export default function SettingsPage() {
+function SettingsPage() {
   
   const { toast } = useToast();
+  const { logout } = useAuth();
   const navItems = useMemo(() => getNavItems(), []);
   const pathname = usePathname();
 
@@ -152,7 +155,7 @@ export default function SettingsPage() {
                <DropdownMenuItem asChild><Link href="/configuracoes">Configurações</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><a href="mailto:suporte@finanzen.com">Suporte</a></DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild><Link href="/login">Sair</Link></DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -258,4 +261,13 @@ export default function SettingsPage() {
       <MobileNav />
     </div>
   )
+}
+
+
+export default function Settings() {
+    return (
+        <AuthGuard>
+            <SettingsPage />
+        </AuthGuard>
+    )
 }

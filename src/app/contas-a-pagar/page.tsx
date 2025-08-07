@@ -54,7 +54,8 @@ import MobileNav, { getNavItems } from '@/components/dashboard/mobile-nav';
 import type { Bill } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
-
+import AuthGuard from '@/components/auth-guard';
+import { useAuth } from '@/hooks/use-auth';
 
 const initialBills: Bill[] = [
     {
@@ -88,8 +89,9 @@ const getStatusText = (status: Bill['status']) => {
 }
 
 
-export default function BillsPage() {
+function BillsPage() {
   const [bills, setBills] = useState<Bill[]>(initialBills);
+  const { logout } = useAuth();
   
   const pendingBillsCount = useMemo(() => {
     return bills.filter(bill => bill.status === 'due' || bill.status === 'overdue').length;
@@ -183,7 +185,7 @@ export default function BillsPage() {
               <DropdownMenuItem asChild><Link href="/configuracoes">Configurações</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><a href="mailto:suporte@finanzen.com">Suporte</a></DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild><Link href="/login">Sair</Link></DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -272,4 +274,13 @@ export default function BillsPage() {
        <MobileNav />
     </div>
   )
+}
+
+
+export default function Bills() {
+    return (
+        <AuthGuard>
+            <BillsPage />
+        </AuthGuard>
+    )
 }

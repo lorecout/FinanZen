@@ -41,7 +41,8 @@ import { getNavItems } from '@/components/dashboard/mobile-nav';
 import { usePathname } from 'next/navigation';
 import GoalsSummary from '@/components/dashboard/goals-summary';
 import MobileNav from '@/components/dashboard/mobile-nav';
-
+import AuthGuard from '@/components/auth-guard';
+import { useAuth } from '@/hooks/use-auth';
 
 const initialTransactions: Transaction[] = [
   {
@@ -64,9 +65,10 @@ const initialGoals: Goal[] = [
 ];
 
 
-export default function Dashboard() {
+function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
+  const { logout } = useAuth();
 
   const handleAddTransaction = (newTransactionData: AnalyzeTransactionOutput) => {
     const newTransaction: Transaction = {
@@ -191,7 +193,7 @@ export default function Dashboard() {
               <DropdownMenuItem asChild><Link href="/configuracoes">Configurações</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><a href="mailto:suporte@finanzen.com">Suporte</a></DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild><Link href="/login">Sair</Link></DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -246,4 +248,12 @@ export default function Dashboard() {
       <MobileNav />
     </div>
   )
+}
+
+export default function Dashboard() {
+  return (
+    <AuthGuard>
+      <DashboardPage />
+    </AuthGuard>
+  );
 }

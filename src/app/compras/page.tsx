@@ -35,15 +35,18 @@ import MobileNav, { getNavItems } from '@/components/dashboard/mobile-nav';
 import type { ShoppingItem } from '@/types';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import AuthGuard from '@/components/auth-guard';
+import { useAuth } from '@/hooks/use-auth';
 
 const initialItems: ShoppingItem[] = [
     { id: uuidv4(), name: "Leite", checked: false },
 ];
 
 
-export default function ShoppingListPage() {
+function ShoppingListPage() {
   const [items, setItems] = useState<ShoppingItem[]>(initialItems);
   const [newItemName, setNewItemName] = useState('');
+  const { logout } = useAuth();
   
   const navItems = useMemo(() => getNavItems(), []);
   const pathname = usePathname();
@@ -142,7 +145,7 @@ export default function ShoppingListPage() {
               <DropdownMenuItem asChild><Link href="/configuracoes">Configurações</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><a href="mailto:suporte@finanzen.com">Suporte</a></DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild><Link href="/login">Sair</Link></DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -205,5 +208,14 @@ export default function ShoppingListPage() {
       </div>
       <MobileNav />
     </div>
+  )
+}
+
+
+export default function ShoppingList() {
+  return (
+    <AuthGuard>
+      <ShoppingListPage />
+    </AuthGuard>
   )
 }
