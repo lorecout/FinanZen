@@ -8,6 +8,7 @@ import {
   Landmark,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
+import Image from 'next/image';
 
 import {
   Card,
@@ -23,6 +24,7 @@ import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
 import { type Transaction, type Goal } from '@/types';
 import GoalsSummary from '@/components/dashboard/goals-summary';
+import { Button } from '../ui/button';
 
 
 type DashboardViewProps = {
@@ -127,6 +129,15 @@ export default function DashboardView({ transactions, setTransactions, goals, se
         </Card>
       </div>
         <div className="grid gap-4 md:gap-6">
+        <Card className='w-full'>
+            <CardContent className='p-4 !pb-2 flex-col sm:flex-row flex items-center justify-center text-center gap-4 sm:text-left'>
+                <div className='w-full flex-1 space-y-1'>
+                    <CardTitle className='text-lg font-headline'>Dê um basta nos anúncios!</CardTitle>
+                    <CardDescription>Assine o Premium e tenha uma experiência sem interrupções.</CardDescription>
+                </div>
+                <Button>Ver Planos</Button>
+            </CardContent>
+        </Card>
         <GoalsSummary goals={goals} onContribute={handleContributeToGoal} />
         <RecentTransactions transactions={transactions} onDelete={handleDeleteTransaction} />
       </div>

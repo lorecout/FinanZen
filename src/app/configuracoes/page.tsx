@@ -6,10 +6,11 @@ import Link from "next/link"
 import {
   CircleUser,
   Menu,
-  Paintbrush,
   Share2,
   Trash2,
   Zap,
+  CheckCircle,
+  XCircle,
 } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -17,6 +18,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -213,17 +215,65 @@ function SettingsPage() {
              <Card>
                 <CardHeader>
                     <CardTitle>Plano</CardTitle>
-                    <CardDescription>Gerencie sua assinatura.</CardDescription>
+                    <CardDescription>Gerencie sua assinatura para remover anúncios e apoiar o app.</CardDescription>
                 </CardHeader>
-                <CardContent className='space-y-4'>
-                     <div className="rounded-lg border bg-card text-card-foreground p-4">
-                        <div className="flex items-center justify-between">
-                            <p>Você está no plano <strong className='text-primary'>Gratuito</strong>.</p>
-                            <Button>
-                                <Zap className='mr-2 h-4 w-4' /> Ver Planos
+                <CardContent className='grid gap-6 md:grid-cols-2'>
+                    <Card className='flex flex-col'>
+                        <CardHeader>
+                            <CardTitle className='text-xl font-headline'>Gratuito</CardTitle>
+                            <CardDescription>Funcionalidades essenciais com a exibição de anúncios.</CardDescription>
+                        </CardHeader>
+                        <CardContent className='flex-grow'>
+                            <p className="text-2xl font-bold">R$ 0<span className='text-sm font-normal text-muted-foreground'>/mês</span></p>
+                            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                                <li className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                    <span>Transações Ilimitadas</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                    <span>Metas e Contas</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <XCircle className="h-4 w-4 text-destructive" />
+                                    <span>Experiência sem Anúncios</span>
+                                </li>
+                            </ul>
+                        </CardContent>
+                        <CardFooter>
+                            <Button variant="outline" className='w-full' disabled>
+                               Plano Atual
                             </Button>
-                        </div>
-                    </div>
+                        </CardFooter>
+                    </Card>
+                     <Card className='flex flex-col border-primary/50 shadow-lg'>
+                        <CardHeader>
+                            <CardTitle className='text-xl font-headline'>Premium</CardTitle>
+                            <CardDescription>Aproveite o FinanZen ao máximo, sem interrupções.</CardDescription>
+                        </CardHeader>
+                        <CardContent className='flex-grow'>
+                            <p className="text-2xl font-bold">R$ 9,90<span className='text-sm font-normal text-muted-foreground'>/mês</span></p>
+                            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                                 <li className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                    <span>Transações Ilimitadas</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                    <span>Metas e Contas</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                    <span>Experiência sem Anúncios</span>
+                                </li>
+                            </ul>
+                        </CardContent>
+                        <CardFooter>
+                             <Button className='w-full'>
+                                <Zap className='mr-2 h-4 w-4' /> Fazer Upgrade
+                            </Button>
+                        </CardFooter>
+                    </Card>
                 </CardContent>
             </Card>
 
