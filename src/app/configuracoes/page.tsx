@@ -73,19 +73,20 @@ function SettingsPage() {
   }
 
   const handleShare = async () => {
+    const shareUrl = "https://finanzen.app";
     if (navigator.share) {
       try {
         await navigator.share({
           title: 'FinanZen',
           text: 'Gerencie suas finanças com facilidade!',
-          url: window.location.origin,
+          url: shareUrl,
         });
         toast({ title: 'Sucesso', description: 'Aplicativo compartilhado!' });
       } catch (error) {
         toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível compartilhar.' });
       }
     } else {
-        navigator.clipboard.writeText(window.location.origin);
+        navigator.clipboard.writeText(shareUrl);
         toast({ title: 'Sucesso', description: 'Link copiado para a área de transferência!' });
     }
   };
