@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useEffect, useRef } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import React, { useEffect, useRef, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { handleTransactionAnalysis } from "@/app/actions";
@@ -20,7 +20,7 @@ function SubmitButton() {
 }
 
 export default function AiTransactionForm() {
-  const [state, formAction] = useFormState(handleTransactionAnalysis, undefined);
+  const [state, formAction] = useActionState(handleTransactionAnalysis, undefined);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
