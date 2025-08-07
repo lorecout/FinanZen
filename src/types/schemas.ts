@@ -25,3 +25,18 @@ export const GenerateFinancialInsightsInputSchema = z.object({
 });
 
 export const GenerateFinancialInsightsOutputSchema = z.string().describe("Um resumo conciso e amigável (em markdown) com insights e dicas sobre as finanças do usuário.");
+
+export const ShoppingItemSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    checked: z.boolean(),
+});
+
+export const AnalyzeShoppingListInputSchema = z.object({
+  items: z.array(ShoppingItemSchema).describe("A lista de itens de compra do usuário."),
+});
+
+export const AnalyzeShoppingListOutputSchema = z.object({
+    estimatedCost: z.number().describe("O custo total estimado dos itens da lista em Reais (BRL)."),
+    suggestions: z.array(z.string()).describe("Uma lista de itens sugeridos que podem ser relevantes com base nos itens da lista."),
+});

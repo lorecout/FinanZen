@@ -5,6 +5,9 @@ import React, { useState } from 'react';
 import {
   Trash2,
   Plus,
+  Sparkles,
+  Loader2,
+  Lightbulb,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
 
@@ -20,7 +23,13 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { ShoppingItem } from '@/types';
 import { cn } from '@/lib/utils';
+import { handleShoppingListAnalysis } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
+type AnalysisResult = {
+    estimatedCost: number;
+    suggestions: string[];
+};
 
 type ShoppingListViewProps = {
     items: ShoppingItem[];
@@ -29,6 +38,9 @@ type ShoppingListViewProps = {
 
 export default function ShoppingListView({ items, setItems }: ShoppingListViewProps) {
   const [newItemName, setNewItemName] = useState('');
+  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const { toast } = useToast();
 
   const handleAddItem = () => {
     if (newItemName.trim() === '') return;
@@ -51,6 +63,26 @@ export default function ShoppingListView({ items, setItems }: ShoppingListViewPr
 
   const handleDeleteItem = (id: string) => {
     setItems(prevItems => prevItems.filter(item => item.id !== id));
+  }
+
+  const handleAnalyzeList = async () => {
+    setIsLoadingAnalysis(true);
+    setAnalysisResult(null);
+    const analysisItems = items.filter(item => !item.checked);
+
+    const result = await handleShoppingListAnalysis({ items: analysisItems });
+
+    if (result.success && result.data) {
+        setAnalysisResult(result.data);
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Erro na Análise",
+            description: result.message,
+        });
+    }
+
+    setIsLoadingAnalysis(false);
   }
 
   return (
@@ -109,6 +141,49 @@ export default function ShoppingListView({ items, setItems }: ShoppingListViewPr
                 </div>
             </CardContent>
         </Card>
+
+        {items.filter(item => !item.checked).length > 0 && (
+            <Card className="mt-4 border-primary/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Sparkles className="text-primary" />
+                        Análise Inteligente (Premium)
+                    </CardTitle>
+                    <CardDescription>
+                        Use a IA para estimar o custo e obter sugestões para os itens não marcados da sua lista.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isLoadingAnalysis ? (
+                        <div className="flex justify-center items-center h-24">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    ) : analysisResult ? (
+                        <div className="space-y-4">
+                            <div>
+                                <h3 className="font-semibold text-lg">Custo Estimado</h3>
+                                <p className="text-2xl font-bold text-primary">
+                                    R$ {analysisResult.estimatedCost.toFixed(2).replace('.', ',')}
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                                   <Lightbulb className='h-5 w-5' /> Sugestões de Itens
+                                </h3>
+                                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                                    {analysisResult.suggestions.map((suggestion, index) => (
+                                        <li key={index}>{suggestion}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    ) : null}
+                    <Button onClick={handleAnalyzeList} disabled={isLoadingAnalysis} className="w-full mt-4">
+                        {isLoadingAnalysis ? "Analisando..." : "Analisar Lista com IA"}
+                    </Button>
+                </CardContent>
+            </Card>
+        )}
     </>
   )
 }

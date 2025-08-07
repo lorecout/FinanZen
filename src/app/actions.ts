@@ -2,6 +2,7 @@
 
 import { analyzeTransaction, type AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
 import { generateFinancialInsights, type GenerateFinancialInsightsInput } from "@/ai/flows/financial-insights-flow";
+import { analyzeShoppingList, type AnalyzeShoppingListInput } from "@/ai/flows/shopping-list-analyzer";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -72,4 +73,39 @@ export async function handleFinancialInsights(
       message: `Erro ao gerar insights: ${errorMessage}`,
     };
   }
+}
+
+type ShoppingListAnalysisState = {
+    success: boolean;
+    message: string;
+    data?: {
+        estimatedCost: number;
+        suggestions: string[];
+    };
+};
+
+export async function handleShoppingListAnalysis(
+    input: AnalyzeShoppingListInput
+): Promise<ShoppingListAnalysisState> {
+    try {
+        if (input.items.length === 0) {
+            return {
+                success: false,
+                message: 'A lista de compras está vazia.',
+            };
+        }
+        const result = await analyzeShoppingList(input);
+        return {
+            success: true,
+            message: 'Análise da lista de compras concluída!',
+            data: result,
+        };
+    } catch (error) {
+        console.error('Error analyzing shopping list:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        return {
+            success: false,
+            message: `Erro ao analisar a lista de compras: ${errorMessage}`,
+        };
+    }
 }
