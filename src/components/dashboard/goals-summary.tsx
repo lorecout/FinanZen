@@ -2,6 +2,7 @@
 "use client"
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
@@ -99,7 +100,7 @@ export default function GoalsSummary({ goals, onContribute }: GoalsSummaryProps)
             )
         })}
         {goals.length === 0 && (
-            <p className="text-center text-muted-foreground py-4">Você ainda não tem nenhuma meta. Crie uma na página de <Link href="/metas" className="underline">Metas</Link>.</p>
+            <p className="text-center text-muted-foreground py-4">Você ainda não tem nenhuma meta. Crie uma na aba "Metas".</p>
         )}
       </CardContent>
     </Card>
