@@ -6,6 +6,7 @@ import {
   CreditCard,
   DollarSign,
   Landmark,
+  X,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
 import { startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear } from 'date-fns';
@@ -28,6 +29,7 @@ import { Button } from '../ui/button';
 import FinancialInsights from './financial-insights';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { cn } from '@/lib/utils';
 
 
 type DashboardViewProps = {
@@ -39,6 +41,8 @@ type DashboardViewProps = {
 
 export default function DashboardView({ transactions, setTransactions, goals, setGoals }: DashboardViewProps) {
   const [timePeriod, setTimePeriod] = useState('this-month');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
 
   const handleAddTransaction = (newTransactionData: AnalyzeTransactionOutput) => {
     const newTransaction: Transaction = {
@@ -78,7 +82,7 @@ export default function DashboardView({ transactions, setTransactions, goals, se
     setTransactions(prev => [newTransaction, ...prev]);
   };
   
-  const filteredTransactions = useMemo(() => {
+  const filteredByTime = useMemo(() => {
     const now = new Date();
     let startDate: Date;
     let endDate: Date = now;
@@ -108,17 +112,28 @@ export default function DashboardView({ transactions, setTransactions, goals, se
     });
   }, [transactions, timePeriod]);
 
+  const filteredTransactions = useMemo(() => {
+    if (!selectedCategory) {
+      return filteredByTime;
+    }
+    return filteredByTime.filter(t => t.category === selectedCategory && t.type === 'expense');
+  }, [filteredByTime, selectedCategory]);
+
 
   const summary = useMemo(() => {
-    const income = filteredTransactions
+    const income = filteredByTime
       .filter(t => t.type === 'income')
       .reduce((acc, t) => acc + t.amount, 0);
-    const expense = filteredTransactions
+    const expense = filteredByTime
       .filter(t => t.type === 'expense')
       .reduce((acc, t) => acc + t.amount, 0);
     const balance = income - expense;
     return { income, expense, balance };
-  }, [filteredTransactions]);
+  }, [filteredByTime]);
+  
+  const handleCategorySelect = (category: string | null) => {
+    setSelectedCategory(prev => prev === category ? null : category);
+  }
   
   return (
     <>
@@ -165,7 +180,7 @@ export default function DashboardView({ transactions, setTransactions, goals, se
           className="sm:col-span-2 lg:col-span-2" 
         />
       </div>
-      <FinancialInsights transactions={filteredTransactions} />
+      <FinancialInsights transactions={filteredByTime} />
       <div id="add-transaction-form" className="grid gap-4 md:gap-6 lg:grid-cols-5">
           <Card className="lg:col-span-3">
           <CardHeader>
@@ -181,10 +196,16 @@ export default function DashboardView({ transactions, setTransactions, goals, se
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Despesas</CardTitle>
-              <CardDescription>Distribuição de gastos do período.</CardDescription>
+              <CardDescription>
+                 {selectedCategory ? `Filtrando por "${selectedCategory}"` : "Distribuição de gastos do período."}
+              </CardDescription>
           </CardHeader>
           <CardContent>
-            <ExpenseChart transactions={filteredTransactions} />
+            <ExpenseChart 
+                transactions={filteredByTime} 
+                onCategorySelect={handleCategorySelect}
+                selectedCategory={selectedCategory}
+            />
           </CardContent>
         </Card>
       </div>
@@ -201,7 +222,28 @@ export default function DashboardView({ transactions, setTransactions, goals, se
             </CardContent>
         </Card>
         <GoalsSummary goals={goals} onContribute={handleContributeToGoal} />
-        <RecentTransactions transactions={filteredTransactions} onDelete={handleDeleteTransaction} />
+        
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle className="font-headline text-xl">Transações Recentes</CardTitle>
+                        <CardDescription>
+                            {selectedCategory ? `Exibindo despesas da categoria "${selectedCategory}"` : "Suas atividades financeiras mais recentes."}
+                        </CardDescription>
+                    </div>
+                    {selectedCategory && (
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedCategory(null)}>
+                           <X className="mr-2 h-4 w-4" />
+                            Limpar Filtro
+                        </Button>
+                    )}
+                </div>
+            </CardHeader>
+            <CardContent>
+                <RecentTransactions transactions={filteredTransactions} onDelete={handleDeleteTransaction} />
+            </CardContent>
+        </Card>
       </div>
     </>
   )

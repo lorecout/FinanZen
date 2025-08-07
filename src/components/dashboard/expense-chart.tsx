@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -15,6 +16,8 @@ import { CardDescription } from "../ui/card";
 
 type ExpenseChartProps = {
   transactions: Transaction[];
+  onCategorySelect: (category: string | null) => void;
+  selectedCategory: string | null;
 };
 
 const chartColors = [
@@ -25,7 +28,7 @@ const chartColors = [
   "hsl(var(--chart-5))",
 ];
 
-export default function ExpenseChart({ transactions }: ExpenseChartProps) {
+export default function ExpenseChart({ transactions, onCategorySelect, selectedCategory }: ExpenseChartProps) {
   const { chartData, chartConfig } = React.useMemo(() => {
     const expenseData = transactions
       .filter((t) => t.type === 'expense')
@@ -62,6 +65,10 @@ export default function ExpenseChart({ transactions }: ExpenseChartProps) {
     return <CardDescription className="text-center h-full flex items-center justify-center">Não há dados de despesa para exibir.</CardDescription>
   }
 
+  const handlePieClick = (data: any) => {
+      onCategorySelect(data.category);
+  }
+
   return (
     <ChartContainer
       config={chartConfig}
@@ -83,9 +90,16 @@ export default function ExpenseChart({ transactions }: ExpenseChartProps) {
             nameKey="category"
             innerRadius="60%"
             strokeWidth={2}
+            onClick={handlePieClick}
+            activeIndex={chartData.findIndex(d => d.category === selectedCategory)}
           >
             {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={chartConfig[entry.category]?.color} />
+              <Cell 
+                key={`cell-${index}`} 
+                fill={chartConfig[entry.category]?.color}
+                className="cursor-pointer"
+                opacity={selectedCategory && selectedCategory !== entry.category ? 0.3 : 1}
+               />
             ))}
           </Pie>
            <ChartLegend
