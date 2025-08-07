@@ -60,7 +60,7 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
     try {
       // No need to await, as it redirects. The auth state listener will handle the result.
-      await loginWithGoogle();
+      loginWithGoogle();
     } catch (error: any) {
        console.error(error);
        toast({
