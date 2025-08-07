@@ -12,7 +12,6 @@ import {
   Package2,
   MoreHorizontal,
   Trash2,
-  Edit,
   CheckCircle,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
@@ -282,9 +281,6 @@ export default function BillsPage() {
                                                 <DropdownMenuLabel>Ações</DropdownMenuLabel>
                                                 <DropdownMenuItem onSelect={() => handleMarkAsPaid(bill.id)} disabled={bill.status === 'paid'}>
                                                   <CheckCircle className='mr-2 h-4 w-4' /> Marcar como Paga
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                  <Edit className='mr-2 h-4 w-4' /> Editar
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <AlertDialog>
