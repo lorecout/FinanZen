@@ -62,38 +62,10 @@ import { cn } from '@/lib/utils';
 const initialBills: Bill[] = [
     {
       id: uuidv4(),
-      name: "Conta de Luz (Eletropaulo)",
-      amount: 180.50,
-      dueDate: "2024-07-28",
-      status: 'due'
-    },
-    {
-      id: uuidv4(),
-      name: "Plano de Internet (Vivo Fibra)",
+      name: "Conta de Internet",
       amount: 99.90,
       dueDate: "2024-07-30",
       status: 'due'
-    },
-    {
-      id: uuidv4(),
-      name: "Fatura Cartão de Crédito",
-      amount: 850.00,
-      dueDate: "2024-08-05",
-      status: 'due'
-    },
-    {
-      id: uuidv4(),
-      name: "Seguro do Carro",
-      amount: 250.00,
-      dueDate: "2024-07-20",
-      status: 'overdue'
-    },
-     {
-      id: uuidv4(),
-      name: "Mensalidade da Academia",
-      amount: 120.00,
-      dueDate: "2024-07-15",
-      status: 'paid'
     },
 ];
 
@@ -170,22 +142,6 @@ export default function BillsPage() {
           </div>
           <div className="flex-1">
             {navContent}
-          </div>
-          <div className="mt-auto p-4">
-            <Card>
-              <CardHeader className="p-2 pt-0 md:p-4">
-                <CardTitle>Upgrade to Pro</CardTitle>
-                <CardDescription>
-                  Unlock all features and get unlimited access to our support
-                  team.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                <Button size="sm" className="w-full">
-                  Upgrade
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
@@ -285,9 +241,9 @@ export default function BillsPage() {
                                                 <DropdownMenuSeparator />
                                                 <AlertDialog>
                                                   <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" className="w-full justify-start text-sm text-destructive font-normal p-2 m-0 h-auto hover:bg-destructive/10 hover:text-destructive">
+                                                    <DropdownMenuItem className='text-destructive focus:bg-destructive/10 focus:text-destructive' onSelect={(e) => e.preventDefault()}>
                                                       <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                                                    </Button>
+                                                    </DropdownMenuItem>
                                                   </AlertDialogTrigger>
                                                   <AlertDialogContent>
                                                     <AlertDialogHeader>

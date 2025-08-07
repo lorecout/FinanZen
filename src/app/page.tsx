@@ -45,7 +45,7 @@ import GoalsSummary from '@/components/dashboard/goals-summary';
 const initialTransactions: Transaction[] = [
   {
     id: uuidv4(),
-    description: "Salário - Empresa X",
+    description: "Salário",
     amount: 5329.00,
     date: "2024-07-01",
     type: "income",
@@ -59,46 +59,6 @@ const initialTransactions: Transaction[] = [
     type: "expense",
     category: "Moradia"
   },
-  {
-    id: uuidv4(),
-    description: "Supermercado Pão de Açúcar",
-    amount: 345.50,
-    date: "2024-07-06",
-    type: "expense",
-    category: "Alimentação"
-  },
-  {
-    id: uuidv4(),
-    description: "Cinema - Filme novo",
-    amount: 55.00,
-    date: "2024-07-07",
-    type: "expense",
-    category: "Lazer"
-  },
-  {
-    id: uuidv4(),
-    description: "Gasolina Posto Shell",
-    amount: 150.00,
-    date: "2024-07-10",
-    type: "expense",
-    category: "Transporte"
-  },
-  {
-    id: uuidv4(),
-    description: "Conta de Luz",
-    amount: 120.70,
-    date: "2024-07-12",
-    type: "expense",
-    category: "Moradia"
-  },
-  {
-    id: uuidv4(),
-    description: "Farmácia",
-    amount: 75.20,
-    date: "2024-07-15",
-    type: "expense",
-    category: "Saúde"
-  }
 ];
 
 const initialGoals: Goal[] = [
@@ -107,24 +67,6 @@ const initialGoals: Goal[] = [
       name: "Viagem para o Japão",
       targetAmount: 15000,
       currentAmount: 5250,
-    },
-    {
-      id: uuidv4(),
-      name: "Entrada do Apartamento",
-      targetAmount: 50000,
-      currentAmount: 25000,
-    },
-    {
-      id: uuidv4(),
-      name: "Novo Computador",
-      targetAmount: 8000,
-      currentAmount: 7500,
-    },
-     {
-      id: uuidv4(),
-      name: "Reserva de Emergência",
-      targetAmount: 10000,
-      currentAmount: 10000,
     },
 ];
 
@@ -182,7 +124,7 @@ export default function Dashboard() {
     return { income, expense, balance };
   }, [transactions]);
   
-  const navItems = useMemo(() => getNavItems(3), []); // Example count
+  const navItems = useMemo(() => getNavItems(1), []); // Static for now, will be dynamic
   const pathname = usePathname();
 
   const navContent = (
@@ -218,22 +160,6 @@ export default function Dashboard() {
           </div>
           <div className="flex-1">
             {navContent}
-          </div>
-          <div className="mt-auto p-4">
-            <Card>
-              <CardHeader className="p-2 pt-0 md:p-4">
-                <CardTitle>Upgrade to Pro</CardTitle>
-                <CardDescription>
-                  Unlock all features and get unlimited access to our support
-                  team.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                <Button size="sm" className="w-full">
-                  Upgrade
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

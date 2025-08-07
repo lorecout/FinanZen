@@ -70,24 +70,6 @@ const initialGoals: Goal[] = [
       targetAmount: 15000,
       currentAmount: 5250,
     },
-    {
-      id: uuidv4(),
-      name: "Entrada do Apartamento",
-      targetAmount: 50000,
-      currentAmount: 25000,
-    },
-    {
-      id: uuidv4(),
-      name: "Novo Computador",
-      targetAmount: 8000,
-      currentAmount: 7500,
-    },
-     {
-      id: uuidv4(),
-      name: "Reserva de Emergência",
-      targetAmount: 10000,
-      currentAmount: 10000,
-    },
 ];
 
 type GoalDialogProps = {
@@ -207,7 +189,7 @@ function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; on
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
 
-  const pendingBillsCount = 3;
+  const pendingBillsCount = 1; // Static for now, will be dynamic
   const navItems = useMemo(() => getNavItems(pendingBillsCount), [pendingBillsCount]);
 
   const handleSaveGoal = (goalToSave: Goal) => {
@@ -413,5 +395,3 @@ export default function GoalsPage() {
     </div>
   )
 }
-
-    

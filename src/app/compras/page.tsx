@@ -37,11 +37,7 @@ import type { ShoppingItem } from '@/types';
 import { cn } from '@/lib/utils';
 
 const initialItems: ShoppingItem[] = [
-    { id: uuidv4(), name: "Leite", checked: true },
-    { id: uuidv4(), name: "Pão Integral", checked: false },
-    { id: uuidv4(), name: "Ovos (dúzia)", checked: false },
-    { id: uuidv4(), name: "Frango (1kg)", checked: false },
-    { id: uuidv4(), name: "Banana", checked: true },
+    { id: uuidv4(), name: "Leite", checked: false },
 ];
 
 
@@ -49,7 +45,7 @@ export default function ShoppingListPage() {
   const [items, setItems] = useState<ShoppingItem[]>(initialItems);
   const [newItemName, setNewItemName] = useState('');
   
-  const pendingBillsCount = 3; // Static for now
+  const pendingBillsCount = 1; // Static for now, will be dynamic
   const navItems = useMemo(() => getNavItems(pendingBillsCount), [pendingBillsCount]);
 
   const handleAddItem = () => {
