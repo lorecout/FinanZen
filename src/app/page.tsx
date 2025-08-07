@@ -3,22 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import Link from "next/link"
 import {
-  Activity,
-  ArrowUpRight,
   CircleUser,
   CreditCard,
   DollarSign,
   Landmark,
-  LayoutGrid,
-  List,
-  Menu,
-  Package2,
-  Plus,
-  Settings,
-  ShoppingCart,
-  Target,
-  Users,
-  Wallet,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
 
@@ -44,7 +32,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import SummaryCard from '@/components/dashboard/summary-card';
 import ExpenseChart from '@/components/dashboard/expense-chart';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
@@ -52,7 +39,7 @@ import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import Logo from '@/components/logo';
 import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
 import { type Transaction } from '@/types';
-import MobileNav from '@/components/dashboard/mobile-nav';
+import MobileNav, { navItems } from '@/components/dashboard/mobile-nav';
 
 
 const initialTransactions: Transaction[] = [
@@ -153,37 +140,21 @@ export default function Dashboard() {
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              <Link
-                href="#"
-                className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
-              >
-                <LayoutGrid className="h-4 w-4" />
-                Dashboard
-              </Link>
-              <Link
-                href="#"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Wallet className="h-4 w-4" />
-                Contas a Pagar
-                <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                  3
-                </Badge>
-              </Link>
-              <Link
-                href="#"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Target className="h-4 w-4" />
-                Metas Financeiras
-              </Link>
-              <Link
-                href="#"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Lista de Compras
-              </Link>
+              {navItems.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${item.active ? 'bg-muted text-primary' : ''}`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                  {item.badge && (
+                    <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </Link>
+              ))}
             </nav>
           </div>
           <div className="mt-auto p-4">
