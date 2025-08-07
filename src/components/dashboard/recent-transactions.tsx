@@ -27,6 +27,8 @@ type RecentTransactionsProps = {
 
 
 export default function RecentTransactions({ transactions, onDelete }: RecentTransactionsProps) {
+  const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
   return (
     <Card>
       <CardHeader>
@@ -46,7 +48,7 @@ export default function RecentTransactions({ transactions, onDelete }: RecentTra
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((tx) => (
+              {sortedTransactions.length > 0 ? sortedTransactions.map((tx) => (
                 <TableRow key={tx.id}>
                   <TableCell>
                     <div className="font-medium">{tx.description}</div>
@@ -72,7 +74,13 @@ export default function RecentTransactions({ transactions, onDelete }: RecentTra
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+              )) : (
+                 <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center">
+                    Nenhuma transação ainda.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
