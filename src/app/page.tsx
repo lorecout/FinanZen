@@ -313,7 +313,7 @@ export default function Dashboard() {
                  <CardDescription>Distribuição de gastos do mês.</CardDescription>
               </CardHeader>
               <CardContent>
-                <ExpenseChart />
+                <ExpenseChart transactions={transactions} />
               </CardContent>
             </Card>
           </div>

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Pie, PieChart, Tooltip, Cell, ResponsiveContainer } from "recharts"
+import { type Transaction } from "@/types"
 
 import {
   ChartConfig,
@@ -10,45 +11,56 @@ import {
   ChartLegendContent,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { CardDescription } from "../ui/card";
 
-const chartData = [
-  { category: "Alimentação", expenses: 450.75, fill: "hsl(var(--chart-1))" },
-  { category: "Transporte", expenses: 200.00, fill: "hsl(var(--chart-2))" },
-  { category: "Moradia", expenses: 1250.00, fill: "hsl(var(--chart-3))" },
-  { category: "Lazer", expenses: 150.25, fill: "hsl(var(--chart-4))" },
-  { category: "Outros", expenses: 70.50, fill: "hsl(var(--chart-5))" },
-]
+type ExpenseChartProps = {
+  transactions: Transaction[];
+};
 
-const chartConfig = {
-  expenses: {
-    label: "Despesas (R$)",
-  },
-  Alimentação: {
-    label: "Alimentação",
-    color: "hsl(var(--chart-1))",
-  },
-  Transporte: {
-    label: "Transporte",
-    color: "hsl(var(--chart-2))",
-  },
-  Moradia: {
-    label: "Moradia",
-    color: "hsl(var(--chart-3))",
-  },
-  Lazer: {
-    label: "Lazer",
-    color: "hsl(var(--chart-4))",
-  },
-  Outros: {
-    label: "Outros",
-    color: "hsl(var(--chart-5))",
-  },
-} satisfies ChartConfig
+const chartColors = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
 
-export default function ExpenseChart() {
-  const totalExpenses = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.expenses, 0)
-  }, [])
+export default function ExpenseChart({ transactions }: ExpenseChartProps) {
+  const { chartData, chartConfig } = React.useMemo(() => {
+    const expenseData = transactions
+      .filter((t) => t.type === 'expense')
+      .reduce((acc, t) => {
+        if (!acc[t.category]) {
+          acc[t.category] = 0;
+        }
+        acc[t.category] += t.amount;
+        return acc;
+      }, {} as Record<string, number>);
+
+    const chartData = Object.entries(expenseData).map(([category, expenses]) => ({
+      category,
+      expenses,
+    }));
+
+    const chartConfig: ChartConfig = {
+      expenses: {
+        label: "Despesas (R$)",
+      },
+    };
+    chartData.forEach((item, index) => {
+      chartConfig[item.category] = {
+        label: item.category,
+        color: chartColors[index % chartColors.length],
+      };
+    });
+
+    return { chartData, chartConfig };
+  }, [transactions]);
+
+
+  if (chartData.length === 0) {
+    return <CardDescription className="text-center h-full flex items-center justify-center">Não há dados de despesa para exibir.</CardDescription>
+  }
 
   return (
     <ChartContainer
@@ -72,11 +84,9 @@ export default function ExpenseChart() {
             innerRadius="60%"
             strokeWidth={2}
           >
-             <Cell key="cell-0" fill={chartConfig.Alimentação.color} />
-             <Cell key="cell-1" fill={chartConfig.Transporte.color} />
-             <Cell key="cell-2" fill={chartConfig.Moradia.color} />
-             <Cell key="cell-3" fill={chartConfig.Lazer.color} />
-             <Cell key="cell-4" fill={chartConfig.Outros.color} />
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={chartConfig[entry.category]?.color} />
+            ))}
           </Pie>
            <ChartLegend
             content={<ChartLegendContent nameKey="category" />}
