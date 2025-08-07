@@ -20,11 +20,12 @@ import SummaryCard from '@/components/dashboard/summary-card';
 import ExpenseChart from '@/components/dashboard/expense-chart';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
-import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
+import type { AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
 import { type Transaction, type Goal } from '@/types';
 import GoalsSummary from '@/components/dashboard/goals-summary';
 import { Button } from '../ui/button';
 import FinancialInsights from './financial-insights';
+import Link from 'next/link';
 
 
 type DashboardViewProps = {
@@ -88,6 +89,16 @@ export default function DashboardView({ transactions, setTransactions, goals, se
   return (
     <>
       <h1 className="text-lg font-semibold md:text-2xl font-headline md:hidden">Dashboard</h1>
+      {transactions.length === 0 && (
+         <Card>
+            <CardHeader>
+              <CardTitle>Bem-vindo ao FinanZen!</CardTitle>
+              <CardDescription>
+                Parece que você ainda não adicionou nenhuma transação. Comece adicionando uma receita ou despesa abaixo.
+              </CardDescription>
+            </CardHeader>
+        </Card>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryCard 
           title="Receitas" 
@@ -136,7 +147,9 @@ export default function DashboardView({ transactions, setTransactions, goals, se
                     <CardTitle className='text-lg font-headline'>Dê um basta nos anúncios!</CardTitle>
                     <CardDescription>Assine o Premium e tenha uma experiência sem interrupções.</CardDescription>
                 </div>
-                <Button>Ver Planos</Button>
+                 <Link href="/configuracoes">
+                    <Button>Ver Planos</Button>
+                </Link>
             </CardContent>
         </Card>
         <GoalsSummary goals={goals} onContribute={handleContributeToGoal} />

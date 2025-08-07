@@ -214,7 +214,7 @@ export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
 
   return (
     <>
-      <div className='flex justify-between items-center'>
+       <div className='flex justify-between items-center mb-4 md:mb-6'>
         <h1 className="text-lg font-semibold md:text-2xl font-headline">Minhas Metas</h1>
         <GoalDialog
             onSave={handleSaveGoal}
@@ -312,7 +312,7 @@ export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
           )
         })}
             {goals.length === 0 && (
-          <Card className="flex flex-col items-center justify-center p-6 text-center md:col-span-2 lg:col-span-3 xl:col-span-4">
+          <Card className="flex flex-col items-center justify-center p-6 text-center md:col-span-full">
               <CardHeader>
                   <CardTitle>Nenhuma meta encontrada</CardTitle>
                   <CardDescription>Clique em "Adicionar Nova Meta" para começar a planejar seu futuro.</CardDescription>
@@ -323,4 +323,3 @@ export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
     </>
   )
 }
-

@@ -1,14 +1,13 @@
 
 "use client"
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, Suspense, useEffect } from 'react';
 import Link from "next/link"
 import {
   CircleUser,
   Menu,
   Loader2,
 } from "lucide-react"
-import { v4 as uuidv4 } from 'uuid';
 import dynamic from 'next/dynamic';
 
 import { Button } from "@/components/ui/button"
@@ -27,6 +26,7 @@ import MobileNav from '@/components/dashboard/mobile-nav';
 import AuthGuard from '@/components/auth-guard';
 import { useAuth } from '@/hooks/use-auth';
 import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
+import WelcomeTour from '@/components/welcome-tour';
 
 // Dynamic imports for view components
 const DashboardView = dynamic(() => import('@/components/views/dashboard-view'), {
@@ -43,53 +43,31 @@ const ShoppingListView = dynamic(() => import('@/components/views/shopping-list-
 });
 
 
-const initialTransactions: Transaction[] = [
-  {
-    id: uuidv4(),
-    description: "Salário",
-    amount: 5329.00,
-    date: "2024-07-01",
-    type: "income",
-    category: "Salário"
-  },
-];
-
-const initialGoals: Goal[] = [
-    {
-      id: uuidv4(),
-      name: "Viagem para o Japão",
-      targetAmount: 15000,
-      currentAmount: 5250,
-    },
-];
-
-const initialBills: Bill[] = [
-    {
-      id: uuidv4(),
-      name: "Conta de Internet",
-      amount: 99.90,
-      dueDate: "2024-07-30",
-      status: 'due'
-    },
-];
-
-const initialShoppingItems: ShoppingItem[] = [
-    { id: uuidv4(), name: "Leite", checked: false },
-];
-
-
 function DashboardPage() {
   const { logout } = useAuth();
   
   const [activeView, setActiveView] = useState('dashboard');
+  const [showTour, setShowTour] = useState(false);
 
-  // States for all data
-  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
-  const [goals, setGoals] = useState<Goal[]>(initialGoals);
-  const [bills, setBills] = useState<Bill[]>(initialBills);
-  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(initialShoppingItems);
+  // States for all data, starting empty
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
 
   const navItems = useMemo(() => getNavItems(), []);
+
+  useEffect(() => {
+    const tourSeen = localStorage.getItem('finanzen-tour-seen');
+    if (!tourSeen) {
+      setShowTour(true);
+    }
+  }, []);
+
+  const handleTourComplete = () => {
+    localStorage.setItem('finanzen-tour-seen', 'true');
+    setShowTour(false);
+  }
 
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -150,6 +128,8 @@ function DashboardPage() {
 
 
   return (
+    <>
+    <WelcomeTour open={showTour} onOpenChange={setShowTour} onComplete={handleTourComplete} />
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
@@ -214,6 +194,7 @@ function DashboardPage() {
       </div>
       <MobileNav activeView={activeView} setActiveView={setActiveView} />
     </div>
+    </>
   )
 }
 
