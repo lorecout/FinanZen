@@ -64,7 +64,7 @@ type GoalDialogProps = {
 
 function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) {
   const [name, setName] = useState(goal?.name || '');
-  const [targetAmount, setTargetAmount] = useState(goal?.targetAmount || '');
+  const [targetAmount, setTargetAmount] = useState(goal?.targetAmount.toString() || '');
   const [open, setOpen] = useState(false);
 
   const handleSave = () => {
@@ -83,10 +83,15 @@ function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) 
   
   React.useEffect(() => {
     if(open) {
-      setName(goal?.name || '');
-      setTargetAmount(goal?.targetAmount.toString() || '');
+      if (isEdit && goal) {
+        setName(goal.name);
+        setTargetAmount(goal.targetAmount.toString());
+      } else {
+        setName('');
+        setTargetAmount('');
+      }
     }
-  }, [open, goal]);
+  }, [open, goal, isEdit]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -138,7 +143,7 @@ function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; on
   const [open, setOpen] = useState(false);
 
   const handleContribute = () => {
-    if(!amount) return;
+    if(!amount || Number(amount) <= 0) return;
     onContribute(goal.id, Number(amount));
     setAmount('');
     setOpen(false);
@@ -227,7 +232,7 @@ export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {goals.map(goal => {
-          const progress = (goal.currentAmount / goal.targetAmount) * 100;
+          const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
           return (
             <Card key={goal.id}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
