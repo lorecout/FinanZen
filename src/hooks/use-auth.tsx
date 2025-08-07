@@ -2,7 +2,7 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client-app';
 import { useRouter } from 'next/navigation';
 
@@ -28,6 +28,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(false);
     });
 
+    // Check for redirect result
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // This is the signed-in user
+          const user = result.user;
+          setUser(user);
+        }
+      })
+      .catch((error) => {
+        // Handle Errors here.
+        console.error("Error getting redirect result", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+
     return () => unsubscribe();
   }, []);
 
@@ -37,7 +55,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const loginWithGoogle = () => {
       const provider = new GoogleAuthProvider();
-      return signInWithPopup(auth, provider);
+      // Instead of popup, we use redirect
+      return signInWithRedirect(auth, provider);
   };
 
   const signup = (email: string, pass: string) => {
@@ -46,6 +65,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     return signOut(auth).then(() => {
+      // Explicitly setting user to null and pushing to login
+      setUser(null);
       router.push('/login');
     });
   };

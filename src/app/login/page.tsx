@@ -23,13 +23,19 @@ import { Loader2 } from "lucide-react"
 
 
 export default function LoginPage() {
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -53,8 +59,8 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
+      // No need to await, as it redirects. The auth state listener will handle the result.
       await loginWithGoogle();
-      router.push('/');
     } catch (error: any) {
        console.error(error);
        toast({
@@ -62,9 +68,8 @@ export default function LoginPage() {
         title: "Erro no Login com Google",
         description: error.message || "Ocorreu um erro ao tentar fazer o login com o Google.",
       })
-    } finally {
-      setIsGoogleLoading(false);
-    }
+      setIsGoogleLoading(false); // Only set loading to false if there's an error
+    } 
   };
 
 
