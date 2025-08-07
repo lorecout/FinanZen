@@ -305,7 +305,7 @@ export default function GoalsPage() {
               <DropdownMenuItem asChild><Link href="/configuracoes">Configurações</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><a href="mailto:suporte@finanzen.com">Suporte</a></DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Sair</DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/login">Sair</Link></DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
