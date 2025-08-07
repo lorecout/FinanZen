@@ -5,11 +5,7 @@ import React, { useState, useMemo } from 'react';
 import Link from "next/link"
 import {
   CircleUser,
-  CreditCard,
-  DollarSign,
-  Landmark,
   Menu,
-  Package2,
   MoreHorizontal,
   Trash2,
   CheckCircle,
@@ -54,9 +50,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Logo from '@/components/logo';
-import { getNavItems } from '@/components/dashboard/mobile-nav';
+import MobileNav, { getNavItems } from '@/components/dashboard/mobile-nav';
 import type { Bill } from '@/types';
 import { cn } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 
 const initialBills: Bill[] = [
@@ -98,7 +95,8 @@ export default function BillsPage() {
     return bills.filter(bill => bill.status === 'due' || bill.status === 'overdue').length;
   }, [bills]);
 
-  const navItems = useMemo(() => getNavItems(pendingBillsCount), [pendingBillsCount]);
+  const navItems = useMemo(() => getNavItems(), []);
+  const pathname = usePathname();
 
 
   const handleMarkAsPaid = (id: string) => {
@@ -113,6 +111,7 @@ export default function BillsPage() {
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       {navItems.map((item) => {
+        if(item.label === 'Adicionar') return null;
         const isActive = item.href === '/contas-a-pagar';
         return (
             <Link
@@ -122,9 +121,9 @@ export default function BillsPage() {
             >
             <item.icon className="h-4 w-4" />
             {item.label}
-            {item.badge ? (
+            {item.label === "Contas" && pendingBillsCount > 0 ? (
                 <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                {item.badge}
+                {pendingBillsCount}
                 </Badge>
             ) : null}
             </Link>
@@ -188,7 +187,7 @@ export default function BillsPage() {
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 pb-24">
            <h1 className="text-lg font-semibold md:text-2xl font-headline md:hidden">Contas a Pagar</h1>
             <Card>
                 <CardHeader>
@@ -270,6 +269,7 @@ export default function BillsPage() {
             </Card>
         </main>
       </div>
+       <MobileNav />
     </div>
   )
 }

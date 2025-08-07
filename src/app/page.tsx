@@ -40,6 +40,7 @@ import { type Transaction, type Goal } from '@/types';
 import { getNavItems } from '@/components/dashboard/mobile-nav';
 import { usePathname } from 'next/navigation';
 import GoalsSummary from '@/components/dashboard/goals-summary';
+import MobileNav from '@/components/dashboard/mobile-nav';
 
 
 const initialTransactions: Transaction[] = [
@@ -50,14 +51,6 @@ const initialTransactions: Transaction[] = [
     date: "2024-07-01",
     type: "income",
     category: "Salário"
-  },
-  {
-    id: uuidv4(),
-    description: "Aluguel",
-    amount: 1500.00,
-    date: "2024-07-05",
-    type: "expense",
-    category: "Moradia"
   },
 ];
 
@@ -124,12 +117,13 @@ export default function Dashboard() {
     return { income, expense, balance };
   }, [transactions]);
   
-  const navItems = useMemo(() => getNavItems(1), []); // Static for now, will be dynamic
+  const navItems = useMemo(() => getNavItems(), []);
   const pathname = usePathname();
 
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       {navItems.map((item) => {
+        if(item.label === 'Adicionar') return null;
         const isActive = pathname === item.href;
         return (
             <Link
@@ -139,11 +133,6 @@ export default function Dashboard() {
             >
             <item.icon className="h-4 w-4" />
             {item.label}
-            {item.badge ? (
-                <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                {item.badge}
-                </Badge>
-            ): null}
             </Link>
         )
       })}
@@ -206,7 +195,7 @@ export default function Dashboard() {
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 pb-24 md:pb-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 pb-24">
            <h1 className="text-lg font-semibold md:text-2xl font-headline md:hidden">Dashboard</h1>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
              <SummaryCard 
@@ -226,7 +215,7 @@ export default function Dashboard() {
               className="sm:col-span-2 lg:col-span-2" 
             />
           </div>
-          <div className="grid gap-4 md:gap-6 lg:grid-cols-5">
+          <div id="add-transaction-form" className="grid gap-4 md:gap-6 lg:grid-cols-5">
              <Card className="lg:col-span-3">
               <CardHeader>
                 <CardTitle className="font-headline text-xl">Adicionar Transação</CardTitle>
@@ -254,6 +243,7 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+      <MobileNav />
     </div>
   )
 }

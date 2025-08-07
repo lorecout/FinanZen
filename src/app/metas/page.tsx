@@ -19,7 +19,6 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -57,10 +56,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Logo from '@/components/logo';
-import { getNavItems } from '@/components/dashboard/mobile-nav';
+import MobileNav, { getNavItems } from '@/components/dashboard/mobile-nav';
 import type { Goal } from '@/types';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 
 const initialGoals: Goal[] = [
@@ -85,6 +85,7 @@ function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) 
   const [open, setOpen] = useState(false);
 
   const handleSave = () => {
+    if(!name || !targetAmount) return;
     const newGoal: Goal = {
       id: goal?.id || uuidv4(),
       name,
@@ -96,6 +97,13 @@ function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) 
     setTargetAmount('');
     setOpen(false);
   };
+  
+  React.useEffect(() => {
+    if(open) {
+      setName(goal?.name || '');
+      setTargetAmount(goal?.targetAmount.toString() || '');
+    }
+  }, [open, goal]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -117,6 +125,7 @@ function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) 
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="col-span-3"
+              placeholder="Ex: Viagem para a praia"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -127,8 +136,9 @@ function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) 
               id="targetAmount"
               type="number"
               value={targetAmount}
-              onChange={(e) => setTargetAmount(Number(e.target.value))}
+              onChange={(e) => setTargetAmount(e.target.value)}
               className="col-span-3"
+              placeholder="Ex: 1500"
             />
           </div>
         </div>
@@ -145,6 +155,7 @@ function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; on
   const [open, setOpen] = useState(false);
 
   const handleContribute = () => {
+    if(!amount) return;
     onContribute(goal.id, Number(amount));
     setAmount('');
     setOpen(false);
@@ -171,6 +182,7 @@ function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; on
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="col-span-3"
+               placeholder="Ex: 50"
             />
           </div>
         </div>
@@ -189,8 +201,8 @@ function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; on
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
 
-  const pendingBillsCount = 1; // Static for now, will be dynamic
-  const navItems = useMemo(() => getNavItems(pendingBillsCount), [pendingBillsCount]);
+  const navItems = useMemo(() => getNavItems(), []);
+  const pathname = usePathname();
 
   const handleSaveGoal = (goalToSave: Goal) => {
     setGoals(prevGoals => {
@@ -218,6 +230,7 @@ export default function GoalsPage() {
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       {navItems.map((item) => {
+        if(item.label === "Adicionar") return null;
         const isActive = item.href === '/metas';
         return (
             <Link
@@ -227,11 +240,6 @@ export default function GoalsPage() {
             >
             <item.icon className="h-4 w-4" />
             {item.label}
-            {item.badge ? (
-                <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                {item.badge}
-                </Badge>
-            ) : null}
             </Link>
         )
       })}
@@ -301,7 +309,7 @@ export default function GoalsPage() {
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 pb-24">
            <h1 className="text-lg font-semibold md:text-2xl font-headline md:hidden">Minhas Metas</h1>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {goals.map(goal => {
@@ -389,9 +397,18 @@ export default function GoalsPage() {
                   </Card>
                 )
               })}
+                 {goals.length === 0 && (
+                <Card className="flex flex-col items-center justify-center p-6 text-center md:col-span-2 lg:col-span-3 xl:col-span-4">
+                    <CardHeader>
+                        <CardTitle>Nenhuma meta encontrada</CardTitle>
+                        <CardDescription>Clique em "Adicionar Nova Meta" para começar a planejar seu futuro.</CardDescription>
+                    </CardHeader>
+                </Card>
+            )}
             </div>
         </main>
       </div>
+      <MobileNav />
     </div>
   )
 }

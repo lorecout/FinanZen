@@ -11,7 +11,6 @@ import {
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -32,9 +31,10 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Logo from '@/components/logo';
-import { getNavItems } from '@/components/dashboard/mobile-nav';
+import MobileNav, { getNavItems } from '@/components/dashboard/mobile-nav';
 import type { ShoppingItem } from '@/types';
 import { cn } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 const initialItems: ShoppingItem[] = [
     { id: uuidv4(), name: "Leite", checked: false },
@@ -45,8 +45,8 @@ export default function ShoppingListPage() {
   const [items, setItems] = useState<ShoppingItem[]>(initialItems);
   const [newItemName, setNewItemName] = useState('');
   
-  const pendingBillsCount = 1; // Static for now, will be dynamic
-  const navItems = useMemo(() => getNavItems(pendingBillsCount), [pendingBillsCount]);
+  const navItems = useMemo(() => getNavItems(), []);
+  const pathname = usePathname();
 
   const handleAddItem = () => {
     if (newItemName.trim() === '') return;
@@ -75,6 +75,7 @@ export default function ShoppingListPage() {
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       {navItems.map((item) => {
+        if (item.label === 'Adicionar') return null;
         const isActive = item.href === '/compras';
         return (
             <Link
@@ -84,11 +85,6 @@ export default function ShoppingListPage() {
             >
             <item.icon className="h-4 w-4" />
             {item.label}
-            {item.badge ? (
-                <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                {item.badge}
-                </Badge>
-            ) : null}
             </Link>
         )
       })}
@@ -150,7 +146,7 @@ export default function ShoppingListPage() {
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 pb-24">
            <h1 className="text-lg font-semibold md:text-2xl font-headline md:hidden">Lista de Compras</h1>
             <Card>
                 <CardHeader>
@@ -207,6 +203,7 @@ export default function ShoppingListPage() {
             </Card>
         </main>
       </div>
+      <MobileNav />
     </div>
   )
 }
