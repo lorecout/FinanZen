@@ -1,13 +1,14 @@
 
 "use client"
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   CreditCard,
   DollarSign,
   Landmark,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
+import { startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear } from 'date-fns';
 
 import {
   Card,
@@ -26,6 +27,7 @@ import GoalsSummary from '@/components/dashboard/goals-summary';
 import { Button } from '../ui/button';
 import FinancialInsights from './financial-insights';
 import Link from 'next/link';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 
 type DashboardViewProps = {
@@ -36,6 +38,7 @@ type DashboardViewProps = {
 }
 
 export default function DashboardView({ transactions, setTransactions, goals, setGoals }: DashboardViewProps) {
+  const [timePeriod, setTimePeriod] = useState('this-month');
 
   const handleAddTransaction = (newTransactionData: AnalyzeTransactionOutput) => {
     const newTransaction: Transaction = {
@@ -75,20 +78,65 @@ export default function DashboardView({ transactions, setTransactions, goals, se
     setTransactions(prev => [newTransaction, ...prev]);
   };
   
+  const filteredTransactions = useMemo(() => {
+    const now = new Date();
+    let startDate: Date;
+    let endDate: Date = now;
+
+    switch (timePeriod) {
+      case 'this-month':
+        startDate = startOfMonth(now);
+        endDate = endOfMonth(now);
+        break;
+      case 'last-month':
+        const lastMonth = subMonths(now, 1);
+        startDate = startOfMonth(lastMonth);
+        endDate = endOfMonth(lastMonth);
+        break;
+      case 'this-year':
+        startDate = startOfYear(now);
+        endDate = endOfYear(now);
+        break;
+      case 'all-time':
+      default:
+        return transactions;
+    }
+
+    return transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate >= startDate && transactionDate <= endDate;
+    });
+  }, [transactions, timePeriod]);
+
+
   const summary = useMemo(() => {
-    const income = transactions
+    const income = filteredTransactions
       .filter(t => t.type === 'income')
       .reduce((acc, t) => acc + t.amount, 0);
-    const expense = transactions
+    const expense = filteredTransactions
       .filter(t => t.type === 'expense')
       .reduce((acc, t) => acc + t.amount, 0);
     const balance = income - expense;
     return { income, expense, balance };
-  }, [transactions]);
+  }, [filteredTransactions]);
   
   return (
     <>
-      <h1 className="text-lg font-semibold md:text-2xl font-headline md:hidden">Dashboard</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-lg font-semibold md:text-2xl font-headline md:hidden">Dashboard</h1>
+         <Select value={timePeriod} onValueChange={setTimePeriod}>
+            <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Selecione o período" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="this-month">Este Mês</SelectItem>
+                <SelectItem value="last-month">Mês Passado</SelectItem>
+                <SelectItem value="this-year">Este Ano</SelectItem>
+                <SelectItem value="all-time">Todo o Período</SelectItem>
+            </SelectContent>
+        </Select>
+      </div>
+
       {transactions.length === 0 && (
          <Card>
             <CardHeader>
@@ -111,13 +159,13 @@ export default function DashboardView({ transactions, setTransactions, goals, se
           icon={CreditCard} 
         />
         <SummaryCard 
-          title="Saldo Atual" 
+          title="Saldo do Período" 
           value={`R$ ${summary.balance.toFixed(2).replace('.', ',')}`} 
           icon={Landmark} 
           className="sm:col-span-2 lg:col-span-2" 
         />
       </div>
-      <FinancialInsights transactions={transactions} />
+      <FinancialInsights transactions={filteredTransactions} />
       <div id="add-transaction-form" className="grid gap-4 md:gap-6 lg:grid-cols-5">
           <Card className="lg:col-span-3">
           <CardHeader>
@@ -133,10 +181,10 @@ export default function DashboardView({ transactions, setTransactions, goals, se
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Despesas</CardTitle>
-              <CardDescription>Distribuição de gastos do mês.</CardDescription>
+              <CardDescription>Distribuição de gastos do período.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ExpenseChart transactions={transactions} />
+            <ExpenseChart transactions={filteredTransactions} />
           </CardContent>
         </Card>
       </div>
@@ -153,7 +201,7 @@ export default function DashboardView({ transactions, setTransactions, goals, se
             </CardContent>
         </Card>
         <GoalsSummary goals={goals} onContribute={handleContributeToGoal} />
-        <RecentTransactions transactions={transactions} onDelete={handleDeleteTransaction} />
+        <RecentTransactions transactions={filteredTransactions} onDelete={handleDeleteTransaction} />
       </div>
     </>
   )
