@@ -179,35 +179,35 @@ export default function Dashboard() {
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <SummaryCard title="Receitas (Mês)" value="R$ 5,329.00" icon={DollarSign} percentageChange={34.1} />
-            <SummaryCard title="Despesas (Mês)" value="R$ 2,120.50" icon={CreditCard} percentageChange={-12.4} />
-            <SummaryCard title="Saldo Atual" value="R$ 12,870.10" icon={Landmark} />
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
+            <SummaryCard title="Receitas" value="R$ 5.329" icon={DollarSign} percentageChange={34.1} isMobile />
+            <SummaryCard title="Despesas" value="R$ 2.120" icon={CreditCard} percentageChange={-12.4} isMobile />
+            <SummaryCard title="Saldo Atual" value="R$ 12.870" icon={Landmark} className="col-span-2 md:col-span-2 lg:col-span-2" />
           </div>
-          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-             <Card className="xl:col-span-2">
+          <div className="grid gap-4 md:gap-6 lg:grid-cols-5">
+             <Card className="lg:col-span-3">
               <CardHeader>
-                <CardTitle className="font-headline">Adicionar Transação Inteligente</CardTitle>
+                <CardTitle className="font-headline text-xl">Adicionar Transação</CardTitle>
                 <CardDescription>
-                  Digite uma despesa ou receita em linguagem natural. Ex: "Café com pão de queijo R$15,50" ou "Salário de R$3000".
+                  Use a IA para adicionar despesas ou receitas de forma rápida.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <AiTransactionForm />
               </CardContent>
             </Card>
-            <Card>
+            <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle className="font-headline">Despesas por Categoria</CardTitle>
-                 <CardDescription>Distribuição de gastos neste mês.</CardDescription>
+                <CardTitle className="font-headline text-xl">Despesas</CardTitle>
+                 <CardDescription>Distribuição de gastos do mês.</CardDescription>
               </CardHeader>
               <CardContent>
                 <ExpenseChart />
               </CardContent>
             </Card>
           </div>
-           <div className="grid gap-4 md:gap-8">
+           <div className="grid gap-4 md:gap-6">
             <RecentTransactions />
           </div>
         </main>

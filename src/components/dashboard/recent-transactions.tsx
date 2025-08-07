@@ -52,6 +52,20 @@ const transactions = [
     type: "expense",
     category: "Transporte"
   },
+  {
+    description: "Conta de Luz",
+    amount: 120.70,
+    date: "2024-07-12",
+    type: "expense",
+    category: "Moradia"
+  },
+  {
+    description: "Farmácia",
+    amount: 75.20,
+    date: "2024-07-15",
+    type: "expense",
+    category: "Saúde"
+  }
 ];
 
 
@@ -59,7 +73,7 @@ export default function RecentTransactions() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Transações Recentes</CardTitle>
+        <CardTitle className="font-headline text-xl">Transações Recentes</CardTitle>
         <CardDescription>
           Suas atividades financeiras mais recentes.
         </CardDescription>
@@ -69,8 +83,6 @@ export default function RecentTransactions() {
           <TableHeader>
             <TableRow>
               <TableHead>Descrição</TableHead>
-              <TableHead className="hidden sm:table-cell">Categoria</TableHead>
-              <TableHead className="hidden md:table-cell">Data</TableHead>
               <TableHead className="text-right">Valor</TableHead>
             </TableRow>
           </TableHeader>
@@ -79,16 +91,20 @@ export default function RecentTransactions() {
               <TableRow key={index}>
                 <TableCell>
                   <div className="font-medium">{tx.description}</div>
+                  <div className="text-sm text-muted-foreground md:hidden">
+                    {new Date(tx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', timeZone: 'UTC' })}
+                  </div>
                 </TableCell>
-                <TableCell className="hidden sm:table-cell">
-                  <Badge variant="outline">{tx.category}</Badge>
-                </TableCell>
-                <TableCell className="hidden md:table-cell">{new Date(tx.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</TableCell>
                 <TableCell className={cn(
                   "text-right font-medium",
                   tx.type === 'income' ? 'text-green-600' : 'text-red-600'
                 )}>
-                  {tx.type === 'income' ? '+' : '-'} R$ {tx.amount.toFixed(2).replace('.', ',')}
+                  <div className="whitespace-nowrap">
+                   {tx.type === 'income' ? '+' : '-'} R$ {tx.amount.toFixed(2).replace('.', ',')}
+                  </div>
+                  <div className="hidden md:block">
+                     <Badge variant="outline" className="mt-1">{tx.category}</Badge>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

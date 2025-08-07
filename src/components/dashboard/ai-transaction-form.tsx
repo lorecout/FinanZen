@@ -12,9 +12,9 @@ import { Card, CardContent } from "../ui/card";
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="w-full">
-      {pending ? "Analisando..." : "Adicionar"}
-      <ArrowRight className="ml-2 h-4 w-4" />
+    <Button type="submit" disabled={pending} className="w-full" size="lg">
+      {pending ? "Analisando..." : "Adicionar Transação"}
+      <Sparkles className="ml-2 h-4 w-4" />
     </Button>
   );
 }
@@ -45,9 +45,9 @@ export default function AiTransactionForm() {
       <div className="relative">
         <Textarea
           name="text"
-          placeholder="Ex: Jantar no restaurante italiano R$ 120,50"
+          placeholder='Ex: "Aluguel R$ 1500" ou "Salário R$ 5000"'
           className="pr-10"
-          rows={3}
+          rows={2}
         />
         <Sparkles className="absolute right-3 top-3 h-5 w-5 text-primary/70" />
       </div>
@@ -55,11 +55,17 @@ export default function AiTransactionForm() {
       {state?.data && (
         <Card className="bg-muted/50">
           <CardContent className="p-4 text-sm">
-            <h4 className="font-semibold mb-2">Dados Extraídos:</h4>
-            <p><strong>Valor:</strong> R$ {state.data.amount.toFixed(2).replace('.', ',')}</p>
-            <p><strong>Descrição:</strong> {state.data.description}</p>
-            <p><strong>Categoria:</strong> {state.data.category}</p>
-            <p><strong>Recorrente:</strong> {state.data.isRecurring ? 'Sim' : 'Não'}</p>
+            <h4 className="font-semibold mb-2">Dados da Última Transação:</h4>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <p><strong>Valor:</strong></p>
+              <p>R$ {state.data.amount.toFixed(2).replace('.', ',')}</p>
+              <p><strong>Descrição:</strong></p>
+               <p>{state.data.description}</p>
+              <p><strong>Categoria:</strong></p>
+              <p>{state.data.category}</p>
+              <p><strong>Recorrente:</strong></p>
+               <p>{state.data.isRecurring ? 'Sim' : 'Não'}</p>
+            </div>
           </CardContent>
         </Card>
       )}
