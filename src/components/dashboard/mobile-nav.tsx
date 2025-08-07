@@ -21,17 +21,14 @@ export type NavItem = {
 }
 
 export const navItems: NavItem[] = [
-  { href: "#", icon: LayoutGrid, label: "Dashboard", active: true },
+  { href: "/", icon: LayoutGrid, label: "Dashboard", active: true },
   { href: "#", icon: Wallet, label: "Contas a Pagar", badge: 3 },
-  { href: "#", icon: Target, label: "Metas Financeiras" },
-  { href: "#", icon: ShoppingCart, label: "Lista de Compras" },
+  { href: "#", icon: Target, label: "Metas" },
+  { href: "#", icon: ShoppingCart, label: "Compras" },
 ]
 
 export default function MobileNav() {
   const pathname = usePathname()
-
-  // For now, we'll consider the root as the active path for the dashboard.
-  const isActive = (item: NavItem) => item.active && pathname === "/"
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm md:hidden">
@@ -41,7 +38,7 @@ export default function MobileNav() {
             <div
               className={cn(
                 "flex flex-col items-center gap-1 p-2 rounded-md relative",
-                isActive(item)
+                (item.href === "/" && pathname === item.href) || (item.href !== "/" && pathname.startsWith(item.href))
                   ? "text-primary"
                   : "text-muted-foreground"
               )}
@@ -52,7 +49,7 @@ export default function MobileNav() {
                 </Badge>
               )}
               <item.icon className="h-5 w-5" />
-              <span className="text-xs font-medium">{item.label.split(' ')[0]}</span>
+              <span className="text-xs font-medium">{item.label}</span>
             </div>
           </Link>
         ))}

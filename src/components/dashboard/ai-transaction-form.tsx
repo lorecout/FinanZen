@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useEffect, useRef, useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { handleTransactionAnalysis } from "@/app/actions";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "../ui/card";
 import type { AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
