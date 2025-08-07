@@ -26,7 +26,6 @@ import MobileNav from '@/components/dashboard/mobile-nav';
 import AuthGuard from '@/components/auth-guard';
 import { useAuth } from '@/hooks/use-auth';
 import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
-import WelcomeTour from '@/components/welcome-tour';
 
 // Dynamic imports for view components
 const DashboardView = dynamic(() => import('@/components/views/dashboard-view'), {
@@ -47,7 +46,6 @@ function DashboardPage() {
   const { logout } = useAuth();
   
   const [activeView, setActiveView] = useState('dashboard');
-  const [showTour, setShowTour] = useState(false);
 
   // States for all data, starting empty
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -56,18 +54,6 @@ function DashboardPage() {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
 
   const navItems = useMemo(() => getNavItems(), []);
-
-  useEffect(() => {
-    const tourSeen = localStorage.getItem('finanzen-tour-seen');
-    if (!tourSeen) {
-      setShowTour(true);
-    }
-  }, []);
-
-  const handleTourComplete = () => {
-    localStorage.setItem('finanzen-tour-seen', 'true');
-    setShowTour(false);
-  }
 
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -118,7 +104,6 @@ function DashboardPage() {
 
   return (
     <>
-    <WelcomeTour open={showTour} onOpenChange={setShowTour} onComplete={handleTourComplete} />
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
