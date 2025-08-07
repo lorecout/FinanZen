@@ -15,7 +15,6 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client-app';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
 
 // Firebase error handler
 const getFirebaseAuthErrorMessage = (error: any): string => {
@@ -105,15 +104,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
          throw new Error(getFirebaseAuthErrorMessage(error));
     }
   };
-  
-  // This wrapper ensures that children are only rendered when loading is complete
-  if (loading) {
-     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, signup, logout }}>
