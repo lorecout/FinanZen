@@ -9,19 +9,18 @@ interface SummaryCardProps {
   icon: LucideIcon;
   percentageChange?: number;
   className?: string;
-  isMobile?: boolean;
 }
 
-const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, icon: Icon, percentageChange, className, isMobile = false }) => {
+const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, icon: Icon, percentageChange, className }) => {
   const isPositive = percentageChange !== undefined && percentageChange >= 0;
   return (
     <Card className={className}>
-      <CardHeader className={cn("flex flex-row items-center justify-between space-y-0 pb-2", isMobile ? 'p-3' : 'p-6')}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
-      <CardContent className={isMobile ? 'p-3 pt-0' : 'p-6 pt-0'}>
-        <div className={cn("font-bold", isMobile ? "text-xl" : "text-2xl")}>{value}</div>
+      <CardContent className="p-4 md:p-6 pt-0">
+        <div className="text-2xl font-bold">{value}</div>
         {percentageChange !== undefined && (
            <p className={cn("text-xs text-muted-foreground", isPositive ? "text-green-600" : "text-red-600")}>
             {isPositive ? '+' : ''}{percentageChange.toFixed(1)}% vs. mês passado
@@ -33,3 +32,5 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ title, value, icon: Icon, per
 };
 
 export default SummaryCard;
+
+    

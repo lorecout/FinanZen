@@ -8,6 +8,7 @@ import { handleTransactionAnalysis } from "@/app/actions";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "../ui/card";
+import type { AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -19,17 +20,23 @@ function SubmitButton() {
   );
 }
 
-export default function AiTransactionForm() {
+type AiTransactionFormProps = {
+  onAddTransaction: (data: AnalyzeTransactionOutput) => void;
+};
+
+
+export default function AiTransactionForm({ onAddTransaction }: AiTransactionFormProps) {
   const [state, formAction] = useActionState(handleTransactionAnalysis, undefined);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state?.success) {
+    if (state?.success && state.data) {
       toast({
         title: "Sucesso!",
         description: state.message,
       });
+      onAddTransaction(state.data);
       formRef.current?.reset();
     } else if (state?.success === false) {
       toast({
@@ -38,7 +45,7 @@ export default function AiTransactionForm() {
         description: state.message,
       });
     }
-  }, [state, toast]);
+  }, [state, toast, onAddTransaction]);
 
   return (
     <form ref={formRef} action={formAction} className="space-y-4">
@@ -52,10 +59,10 @@ export default function AiTransactionForm() {
         <Sparkles className="absolute right-3 top-3 h-5 w-5 text-primary/70" />
       </div>
       <SubmitButton />
-      {state?.data && (
+      {state?.data && state.success && (
         <Card className="bg-muted/50">
           <CardContent className="p-4 text-sm">
-            <h4 className="font-semibold mb-2">Dados da Última Transação:</h4>
+            <h4 className="font-semibold mb-2">Dados da Última Transação Adicionada:</h4>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
               <p><strong>Valor:</strong></p>
               <p>R$ {state.data.amount.toFixed(2).replace('.', ',')}</p>
@@ -72,3 +79,5 @@ export default function AiTransactionForm() {
     </form>
   );
 }
+
+    

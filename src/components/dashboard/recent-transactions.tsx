@@ -14,62 +14,25 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { Trash2 } from "lucide-react"
 
-const transactions = [
-  {
-    description: "Salário - Empresa X",
-    amount: 5329.00,
-    date: "2024-07-01",
-    type: "income",
-    category: "Salário"
-  },
-  {
-    description: "Aluguel",
-    amount: 1500.00,
-    date: "2024-07-05",
-    type: "expense",
-    category: "Moradia"
-  },
-  {
-    description: "Supermercado Pão de Açúcar",
-    amount: 345.50,
-    date: "2024-07-06",
-    type: "expense",
-    category: "Alimentação"
-  },
-  {
-    description: "Cinema - Filme novo",
-    amount: 55.00,
-    date: "2024-07-07",
-    type: "expense",
-    category: "Lazer"
-  },
-  {
-    description: "Gasolina Posto Shell",
-    amount: 150.00,
-    date: "2024-07-10",
-    type: "expense",
-    category: "Transporte"
-  },
-  {
-    description: "Conta de Luz",
-    amount: 120.70,
-    date: "2024-07-12",
-    type: "expense",
-    category: "Moradia"
-  },
-  {
-    description: "Farmácia",
-    amount: 75.20,
-    date: "2024-07-15",
-    type: "expense",
-    category: "Saúde"
-  }
-];
+type Transaction = {
+  description: string;
+  amount: number;
+  date: string;
+  type: "income" | "expense";
+  category: string;
+};
+
+type RecentTransactionsProps = {
+  transactions: Transaction[];
+  onDelete: (index: number) => void;
+};
 
 
-export default function RecentTransactions() {
+export default function RecentTransactions({ transactions, onDelete }: RecentTransactionsProps) {
   return (
     <Card>
       <CardHeader>
@@ -79,38 +42,49 @@ export default function RecentTransactions() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Descrição</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions.map((tx, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  <div className="font-medium">{tx.description}</div>
-                  <div className="text-sm text-muted-foreground md:hidden">
-                    {new Date(tx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', timeZone: 'UTC' })}
-                  </div>
-                </TableCell>
-                <TableCell className={cn(
-                  "text-right font-medium",
-                  tx.type === 'income' ? 'text-green-600' : 'text-red-600'
-                )}>
-                  <div className="whitespace-nowrap">
-                   {tx.type === 'income' ? '+' : '-'} R$ {tx.amount.toFixed(2).replace('.', ',')}
-                  </div>
-                  <div className="hidden md:block">
-                     <Badge variant="outline" className="mt-1">{tx.category}</Badge>
-                  </div>
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right w-[80px]">Ações</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {transactions.map((tx, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <div className="font-medium">{tx.description}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(tx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })}
+                    </div>
+                  </TableCell>
+                  <TableCell className={cn(
+                    "text-right font-medium",
+                    tx.type === 'income' ? 'text-green-600' : 'text-red-600'
+                  )}>
+                    <div className="whitespace-nowrap">
+                    {tx.type === 'income' ? '+' : '-'} R$ {Math.abs(tx.amount).toFixed(2).replace('.', ',')}
+                    </div>
+                    <div>
+                      <Badge variant="outline" className="mt-1">{tx.category}</Badge>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => onDelete(index)}>
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Excluir</span>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   )
 }
+
+    

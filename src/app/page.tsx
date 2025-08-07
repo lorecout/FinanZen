@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from "next/link"
 import {
   Activity,
@@ -48,8 +48,86 @@ import ExpenseChart from '@/components/dashboard/expense-chart';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import Logo from '@/components/logo';
+import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
+
+const initialTransactions = [
+  {
+    description: "Salário - Empresa X",
+    amount: 5329.00,
+    date: "2024-07-01",
+    type: "income",
+    category: "Salário"
+  },
+  {
+    description: "Aluguel",
+    amount: 1500.00,
+    date: "2024-07-05",
+    type: "expense",
+    category: "Moradia"
+  },
+  {
+    description: "Supermercado Pão de Açúcar",
+    amount: 345.50,
+    date: "2024-07-06",
+    type: "expense",
+    category: "Alimentação"
+  },
+  {
+    description: "Cinema - Filme novo",
+    amount: 55.00,
+    date: "2024-07-07",
+    type: "expense",
+    category: "Lazer"
+  },
+  {
+    description: "Gasolina Posto Shell",
+    amount: 150.00,
+    date: "2024-07-10",
+    type: "expense",
+    category: "Transporte"
+  },
+  {
+    description: "Conta de Luz",
+    amount: 120.70,
+    date: "2024-07-12",
+    type: "expense",
+    category: "Moradia"
+  },
+  {
+    description: "Farmácia",
+    amount: 75.20,
+    date: "2024-07-15",
+    type: "expense",
+    category: "Saúde"
+  }
+];
+
+type Transaction = {
+  description: string;
+  amount: number;
+  date: string;
+  type: "income" | "expense";
+  category: string;
+};
+
 
 export default function Dashboard() {
+  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+
+  const handleAddTransaction = (newTransactionData: AnalyzeTransactionOutput) => {
+    const newTransaction: Transaction = {
+      ...newTransactionData,
+      date: new Date().toISOString(),
+      type: newTransactionData.amount >= 0 ? 'income' : 'expense'
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
+  };
+
+  const handleDeleteTransaction = (indexToDelete: number) => {
+    setTransactions(prev => prev.filter((_, index) => index !== indexToDelete));
+  };
+
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -180,10 +258,10 @@ export default function Dashboard() {
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
-          <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
-            <SummaryCard title="Receitas" value="R$ 5.329" icon={DollarSign} percentageChange={34.1} isMobile />
-            <SummaryCard title="Despesas" value="R$ 2.120" icon={CreditCard} percentageChange={-12.4} isMobile />
-            <SummaryCard title="Saldo Atual" value="R$ 12.870" icon={Landmark} className="col-span-2 md:col-span-2 lg:col-span-2" />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <SummaryCard title="Receitas" value="R$ 5.329" icon={DollarSign} percentageChange={34.1} />
+            <SummaryCard title="Despesas" value="R$ 2.120" icon={CreditCard} percentageChange={-12.4} />
+            <SummaryCard title="Saldo Atual" value="R$ 12.870" icon={Landmark} className="sm:col-span-2 lg:col-span-2" />
           </div>
           <div className="grid gap-4 md:gap-6 lg:grid-cols-5">
              <Card className="lg:col-span-3">
@@ -194,7 +272,7 @@ export default function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AiTransactionForm />
+                <AiTransactionForm onAddTransaction={handleAddTransaction} />
               </CardContent>
             </Card>
             <Card className="lg:col-span-2">
@@ -208,10 +286,12 @@ export default function Dashboard() {
             </Card>
           </div>
            <div className="grid gap-4 md:gap-6">
-            <RecentTransactions />
+            <RecentTransactions transactions={transactions} onDelete={handleDeleteTransaction} />
           </div>
         </main>
       </div>
     </div>
   )
 }
+
+    
