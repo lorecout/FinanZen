@@ -72,19 +72,8 @@ function DashboardPage() {
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       {navItems.map((item) => {
-        if(item.id === 'add') return null;
-        if(item.id === 'settings') {
-             return (
-                <Link
-                    key={item.id}
-                    href={item.href}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary`}
-                >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                </Link>
-             )
-        }
+        if(item.id === 'add' || item.id === 'settings') return null;
+        
         const isActive = activeView === item.id;
         return (
             <Button

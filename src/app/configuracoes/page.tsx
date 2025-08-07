@@ -91,20 +91,28 @@ function SettingsPage() {
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       {navItems.map((item) => {
-        if(item.label === 'Adicionar') return null;
-        let href = item.id === 'settings' ? item.href : '/';
-        const isActive = item.href === '/configuracoes';
+        if(item.label === 'Adicionar' || item.id === 'settings') return null;
+        let href = item.href;
+        if(item.id !== 'dashboard') href = `/?view=${item.id}`;
+        
         return (
             <Link
             key={item.label}
             href={href}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive ? 'bg-muted text-primary' : ''}`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary`}
             >
             <item.icon className="h-4 w-4" />
             {item.label}
             </Link>
         )
       })}
+       <Link
+            href="/configuracoes"
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted transition-all hover:text-primary`}
+        >
+            <Settings className="h-4 w-4" />
+            Configurações
+        </Link>
     </nav>
   );
 
@@ -138,7 +146,25 @@ function SettingsPage() {
                   <Logo />
               </div>
               <div className="flex-1 overflow-y-auto pt-2">
-                {navContent}
+                 <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+                  {navItems.map((item) => {
+                    if(item.id === 'add') return null;
+                    let href = item.id === 'settings' ? item.href : '/';
+                    if(item.id !== 'dashboard' && item.id !== 'settings') href = `/?view=${item.id}`;
+                    
+                    const isActive = item.href === '/configuracoes';
+                    return (
+                        <Link
+                        key={item.label}
+                        href={href}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive ? 'bg-muted text-primary' : ''}`}
+                        >
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                        </Link>
+                    )
+                  })}
+                </nav>
               </div>
             </SheetContent>
           </Sheet>
