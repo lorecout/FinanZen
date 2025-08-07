@@ -4,7 +4,6 @@
 import React, { useState, useMemo, Suspense, useEffect } from 'react';
 import Link from "next/link"
 import {
-  CircleUser,
   Menu,
   Loader2,
 } from "lucide-react"
@@ -26,6 +25,7 @@ import MobileNav from '@/components/dashboard/mobile-nav';
 import AuthGuard from '@/components/auth-guard';
 import { useAuth } from '@/hooks/use-auth';
 import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 // Dynamic imports for view components
 const DashboardView = dynamic(() => import('@/components/views/dashboard-view'), {
@@ -43,7 +43,7 @@ const ShoppingListView = dynamic(() => import('@/components/views/shopping-list-
 
 
 function DashboardPage() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -54,6 +54,12 @@ function DashboardPage() {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
 
   const navItems = useMemo(() => getNavItems(), []);
+
+  const getInitials = (name: string) => {
+    const names = name.split(' ');
+    const initials = names.map(n => n[0]).join('');
+    return initials.toUpperCase().slice(0, 2);
+  }
 
   const renderActiveView = () => {
     switch (activeView) {
@@ -100,13 +106,16 @@ function DashboardPage() {
         <div className="flex-1 flex justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
+                <Button variant="secondary" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.photoURL || ''} alt={`@${user?.displayName}`} />
+                        <AvatarFallback>{getInitials(user?.displayName || user?.email || 'U')}</AvatarFallback>
+                    </Avatar>
+                    <span className="sr-only">Toggle user menu</span>
+                </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuLabel>{user?.displayName || user?.email}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setActiveView('settings')}>Configurações</DropdownMenuItem>
               <DropdownMenuItem asChild><a href="mailto:suporte@finanzen.com">Suporte</a></DropdownMenuItem>
