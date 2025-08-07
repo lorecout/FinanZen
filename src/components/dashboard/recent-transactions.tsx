@@ -56,7 +56,7 @@ export default function RecentTransactions({ transactions, onDelete }: RecentTra
                   </TableCell>
                   <TableCell className={cn(
                     "text-right font-medium",
-                    tx.type === 'income' ? 'text-green-600' : 'text-red-600'
+                    tx.type === 'income' ? 'text-emerald-600' : 'text-destructive'
                   )}>
                     <div className="whitespace-nowrap">
                     {tx.type === 'income' ? '+' : '-'} R$ {Math.abs(tx.amount).toFixed(2).replace('.', ',')}
