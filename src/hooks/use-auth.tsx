@@ -23,29 +23,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const router = useRouter();
 
   useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // This is the signed-in user
+          setUser(result.user);
+        }
+      } catch (error) {
+        // Handle Errors here.
+        console.error("Error getting redirect result", error);
+      } finally {
+        // This is a good place to set loading to false after checking redirect
+        // but the onAuthStateChanged listener below is the primary source of truth.
+      }
+    };
+    
+    handleRedirectResult();
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
-
-    // Check for redirect result
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          // This is the signed-in user
-          const user = result.user;
-          setUser(user);
-        }
-      })
-      .catch((error) => {
-        // Handle Errors here.
-        console.error("Error getting redirect result", error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
-
+    
     return () => unsubscribe();
   }, []);
 
