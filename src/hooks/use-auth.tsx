@@ -2,17 +2,47 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
-import { auth } from '@/lib/firebase/client-app';
+import type { User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+
+// Mock User object that matches Firebase's User type shape
+const mockUser: User = {
+  uid: 'mock-user-id',
+  email: 'mock@user.com',
+  displayName: 'Usuário Mock',
+  photoURL: null,
+  emailVerified: true,
+  isAnonymous: false,
+  metadata: {
+    creationTime: new Date().toISOString(),
+    lastSignInTime: new Date().toISOString(),
+  },
+  providerData: [],
+  providerId: 'password',
+  tenantId: null,
+  delete: () => Promise.resolve(),
+  getIdToken: () => Promise.resolve('mock-token'),
+  getIdTokenResult: () => Promise.resolve({
+    token: 'mock-token',
+    expirationTime: new Date().toISOString(),
+    authTime: new Date().toISOString(),
+    issuedAtTime: new Date().toISOString(),
+    signInProvider: 'password',
+    signInSecondFactor: null,
+    claims: {},
+  }),
+  reload: () => Promise.resolve(),
+  toJSON: () => ({}),
+};
+
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<any>;
-  loginWithGoogle: () => Promise<any>;
-  signup: (email: string, pass: string) => Promise<any>;
-  logout: () => Promise<any>;
+  login: (email: string, pass: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  signup: (email: string, pass: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,52 +53,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const router = useRouter();
 
   useEffect(() => {
-    const handleRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          // This is the signed-in user
-          setUser(result.user);
-        }
-      } catch (error) {
-        // Handle Errors here.
-        console.error("Error getting redirect result", error);
-      } finally {
-        // This is a good place to set loading to false after checking redirect
-        // but the onAuthStateChanged listener below is the primary source of truth.
-      }
-    };
-    
-    handleRedirectResult();
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-    
-    return () => unsubscribe();
+    // Check if user is "logged in" from a previous session (using localStorage)
+    const storedUser = localStorage.getItem('finanzen-user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
-  const login = (email: string, pass: string) => {
-    return signInWithEmailAndPassword(auth, email, pass);
+  const login = async (email: string, pass: string) => {
+    setLoading(true);
+    // Simulate network delay
+    await new Promise(res => setTimeout(res, 500));
+    setUser(mockUser);
+    localStorage.setItem('finanzen-user', JSON.stringify(mockUser));
+    setLoading(false);
   };
   
-  const loginWithGoogle = () => {
-      const provider = new GoogleAuthProvider();
-      // Instead of popup, we use redirect
-      return signInWithRedirect(auth, provider);
+  const loginWithGoogle = async () => {
+    // This now behaves the same as regular login
+    await login('mock@google.com', 'password');
   };
 
-  const signup = (email: string, pass: string) => {
-    return createUserWithEmailAndPassword(auth, email, pass);
+  const signup = async (email: string, pass: string) => {
+     await login(email, pass);
   };
 
-  const logout = () => {
-    return signOut(auth).then(() => {
-      // Explicitly setting user to null and pushing to login
-      setUser(null);
-      router.push('/login');
-    });
+  const logout = async () => {
+    setLoading(true);
+     await new Promise(res => setTimeout(res, 500));
+    setUser(null);
+    localStorage.removeItem('finanzen-user');
+    setLoading(false);
+    router.push('/login');
   };
 
   return (
