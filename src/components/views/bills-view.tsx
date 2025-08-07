@@ -1,14 +1,16 @@
 
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   MoreHorizontal,
   Trash2,
   CheckCircle,
   PlusCircle,
+  Bell,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
+import { differenceInDays, isFuture, parseISO } from 'date-fns';
 
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -59,6 +61,7 @@ import type { Bill } from '@/types';
 import { cn } from '@/lib/utils';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 
 const getStatusBadgeVariant = (status: Bill['status']) => {
@@ -170,7 +173,37 @@ type BillsViewProps = {
 }
 
 export default function BillsView({ bills, setBills }: BillsViewProps) {
+  const { toast } = useToast();
+  const [notifiedBills, setNotifiedBills] = useState<string[]>([]);
   
+  useEffect(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize today to the start of the day
+
+    bills.forEach(bill => {
+        if (bill.status !== 'paid' && !notifiedBills.includes(bill.id)) {
+            const dueDate = parseISO(bill.dueDate);
+            
+            if (isFuture(dueDate) || differenceInDays(dueDate, today) === 0) {
+                 const daysUntilDue = differenceInDays(dueDate, today);
+
+                if(daysUntilDue >= 0 && daysUntilDue <= 3) {
+                     toast({
+                        title: (
+                            <div className='flex items-center'>
+                                <Bell className="mr-2 h-4 w-4 text-primary" /> Alerta de Vencimento
+                            </div>
+                        ),
+                        description: `Sua conta de "${bill.name}" vence ${daysUntilDue === 0 ? 'hoje' : `em ${daysUntilDue} dia(s)`}!`,
+                    });
+                    setNotifiedBills(prev => [...prev, bill.id]);
+                }
+            }
+        }
+    });
+  }, [bills, toast, notifiedBills]);
+
+
   const handleAddBill = (newBillData: Omit<Bill, 'id' | 'status'>) => {
     const newBill: Bill = {
         id: uuidv4(),
