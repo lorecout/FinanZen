@@ -27,9 +27,7 @@ export const getNavItems = (): NavItem[] => [
   // Placeholder for the add button
   { id: "add", href: "/#add-transaction", icon: Plus, label: "Adicionar" },
   { id: "goals", href: "/#", icon: Target, label: "Metas" },
-  { id: "shopping", href: "/#", icon: ShoppingCart, label: "Compras" },
-  // Hidden from mobile nav, but used for sidebar
-  { id: "settings", href: "/configuracoes", icon: Settings, label: "Configurações" },
+  { id: "settings", href: "/configuracoes", icon: Settings, label: "Ajustes" },
 ]
 
 type MobileNavProps = {
@@ -48,14 +46,17 @@ export default function MobileNav({ activeView, setActiveView }: MobileNavProps)
             setTimeout(() => {
                 addTransactionSection.scrollIntoView({ behavior: 'smooth' });
             }, 100);
+        } else {
+           setActiveView('dashboard');
         }
     }
 
 
     return (
-        <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t md:hidden">
+        <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t">
             <div className="grid h-full grid-cols-5 max-w-lg mx-auto font-medium">
-                {navItems.filter(i => i.id !== 'settings').map((item) => {
+                {navItems.map((item) => {
+                    if(item.id === 'shopping') return null; // Remove shopping list icon for now
                     const isActive = activeView === item.id;
                     if (item.label === 'Adicionar') {
                         return (
