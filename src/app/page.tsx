@@ -13,6 +13,7 @@ import {
   List,
   Menu,
   Package2,
+  Plus,
   Settings,
   ShoppingCart,
   Target,
@@ -51,6 +52,7 @@ import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import Logo from '@/components/logo';
 import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
 import { type Transaction } from '@/types';
+import MobileNav from '@/components/dashboard/mobile-nav';
 
 
 const initialTransactions: Transaction[] = [
@@ -120,11 +122,8 @@ export default function Dashboard() {
       id: uuidv4(),
       ...newTransactionData,
       date: new Date().toISOString(),
-      // The AI now returns positive amounts for expenses, so we rely on the isRecurring flag (or a better indicator)
-      // For now, we'll assume non-recurring are expenses unless amount is very high (heuristic)
-      // A better approach would be for the AI to return the transaction type.
       type: newTransactionData.description.toLowerCase().includes('salário') || newTransactionData.description.toLowerCase().includes('renda') ? 'income' : 'expense',
-      amount: newTransactionData.amount // Amount is now always positive
+      amount: newTransactionData.amount
     };
     setTransactions(prev => [newTransaction, ...prev]);
   };
@@ -207,54 +206,13 @@ export default function Dashboard() {
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0 md:hidden"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
-              <nav className="grid gap-2 text-lg font-medium">
-                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 mb-4">
-                  <Logo />
-                </div>
-                <Link
-                  href="#"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
-                >
-                  <LayoutGrid className="h-5 w-5" />
-                  Dashboard
-                </Link>
-                <Link
-                  href="#"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-                >
-                  <Wallet className="h-5 w-5" />
-                  Contas a Pagar
-                </Link>
-                <Link
-                  href="#"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-                >
-                  <Target className="h-5 w-5" />
-                  Metas Financeiras
-                </Link>
-                <Link
-                  href="#"
-                  className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-                >
-                  <ShoppingCart className="h-5 w-5" />
-                  Lista de Compras
-                </Link>
-              </nav>
-            </SheetContent>
-          </Sheet>
-          <div className="w-full flex-1">
+           <div className="md:hidden">
+              <Logo />
+            </div>
+          <div className="w-full flex-1 md:hidden">
+            {/* O título do Dashboard é movido para o conteúdo principal em telas móveis */}
+          </div>
+           <div className="w-full flex-1 hidden md:block">
             <h1 className="text-lg font-semibold md:text-2xl font-headline">Dashboard</h1>
           </div>
           <DropdownMenu>
@@ -274,7 +232,8 @@ export default function Dashboard() {
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 pb-24 md:pb-6">
+           <h1 className="text-lg font-semibold md:text-2xl font-headline md:hidden">Dashboard</h1>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
              <SummaryCard 
               title="Receitas" 
@@ -322,6 +281,7 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+       <MobileNav />
     </div>
   )
 }
