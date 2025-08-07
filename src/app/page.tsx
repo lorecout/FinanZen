@@ -7,14 +7,11 @@ import {
   CreditCard,
   DollarSign,
   Landmark,
+  Menu,
+  Package2,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,6 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import SummaryCard from '@/components/dashboard/summary-card';
 import ExpenseChart from '@/components/dashboard/expense-chart';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
@@ -39,7 +37,7 @@ import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import Logo from '@/components/logo';
 import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
 import { type Transaction } from '@/types';
-import MobileNav, { navItems } from '@/components/dashboard/mobile-nav';
+import { navItems } from '@/components/dashboard/mobile-nav';
 
 
 const initialTransactions: Transaction[] = [
@@ -130,6 +128,26 @@ export default function Dashboard() {
     return { income, expense, balance };
   }, [transactions]);
 
+  const navContent = (
+    <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+      {navItems.map((item) => (
+        <Link
+          key={item.label}
+          href={item.href}
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${item.active ? 'bg-muted text-primary' : ''}`}
+        >
+          <item.icon className="h-4 w-4" />
+          {item.label}
+          {item.badge && (
+            <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
+              {item.badge}
+            </Badge>
+          )}
+        </Link>
+      ))}
+    </nav>
+  );
+
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -139,23 +157,7 @@ export default function Dashboard() {
             <Logo />
           </div>
           <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${item.active ? 'bg-muted text-primary' : ''}`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                  {item.badge && (
-                    <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </Link>
-              ))}
-            </nav>
+            {navContent}
           </div>
           <div className="mt-auto p-4">
             <Card>
@@ -177,14 +179,45 @@ export default function Dashboard() {
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-           <div className="md:hidden">
-              <Logo />
-            </div>
-          <div className="w-full flex-1 md:hidden">
-            {/* O título do Dashboard é movido para o conteúdo principal em telas móveis */}
-          </div>
-           <div className="w-full flex-1 hidden md:block">
-            <h1 className="text-lg font-semibold md:text-2xl font-headline">Dashboard</h1>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="flex flex-col">
+              <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+                  <Logo />
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {navContent}
+              </div>
+              <div className="mt-auto p-4">
+                <Card>
+                  <CardHeader className="p-2 pt-0 md:p-4">
+                    <CardTitle>Upgrade to Pro</CardTitle>
+                    <CardDescription>
+                      Unlock all features and get unlimited access to our
+                      support team.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
+                    <Button size="sm" className="w-full">
+                      Upgrade
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <div className="w-full flex-1">
+            <h1 className="text-lg font-semibold md:text-2xl font-headline hidden md:block">Dashboard</h1>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -252,7 +285,6 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
-       <MobileNav />
     </div>
   )
 }
