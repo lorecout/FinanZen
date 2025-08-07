@@ -30,6 +30,7 @@ import FinancialInsights from './financial-insights';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
 
 
 type DashboardViewProps = {
@@ -42,6 +43,7 @@ type DashboardViewProps = {
 export default function DashboardView({ transactions, setTransactions, goals, setGoals }: DashboardViewProps) {
   const [timePeriod, setTimePeriod] = useState('this-month');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { isPremium } = useAuth();
 
 
   const handleAddTransaction = (newTransactionData: AnalyzeTransactionOutput) => {
@@ -210,17 +212,19 @@ export default function DashboardView({ transactions, setTransactions, goals, se
         </Card>
       </div>
         <div className="grid gap-4 md:gap-6">
-        <Card className='w-full'>
-            <CardContent className='p-4 !pb-2 flex-col sm:flex-row flex items-center justify-center text-center gap-4 sm:text-left'>
-                <div className='w-full flex-1 space-y-1'>
-                    <CardTitle className='text-lg font-headline'>Dê um basta nos anúncios!</CardTitle>
-                    <CardDescription>Assine o Premium e tenha uma experiência sem interrupções.</CardDescription>
-                </div>
-                 <Link href="/configuracoes">
-                    <Button>Ver Planos</Button>
-                </Link>
-            </CardContent>
-        </Card>
+        {!isPremium && (
+            <Card className='w-full'>
+                <CardContent className='p-4 !pb-2 flex-col sm:flex-row flex items-center justify-center text-center gap-4 sm:text-left'>
+                    <div className='w-full flex-1 space-y-1'>
+                        <CardTitle className='text-lg font-headline'>Dê um basta nos anúncios!</CardTitle>
+                        <CardDescription>Assine o Premium e tenha uma experiência sem interrupções.</CardDescription>
+                    </div>
+                     <Link href="/configuracoes">
+                        <Button>Ver Planos</Button>
+                    </Link>
+                </CardContent>
+            </Card>
+        )}
         <GoalsSummary goals={goals} onContribute={handleContributeToGoal} />
         
         <Card>

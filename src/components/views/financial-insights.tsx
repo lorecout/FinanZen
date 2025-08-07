@@ -4,10 +4,12 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Lightbulb, Loader2 } from 'lucide-react';
+import { Lightbulb, Loader2, Zap } from 'lucide-react';
 import { handleFinancialInsights } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { type Transaction } from '@/types';
+import { useAuth } from '@/hooks/use-auth';
+import Link from 'next/link';
 
 type FinancialInsightsProps = {
     transactions: Transaction[];
@@ -35,6 +37,7 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
     const [isLoading, setIsLoading] = useState(false);
     const [insights, setInsights] = useState<string | null>(null);
     const { toast } = useToast();
+    const { isPremium } = useAuth();
 
     const getInsights = async () => {
         setIsLoading(true);
@@ -74,19 +77,32 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
                 </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
-                {isLoading ? (
-                    <div className="flex items-center justify-center h-24">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                ) : insights ? (
-                    <div className="p-4 bg-background/50 rounded-lg">
-                       <MarkdownRenderer content={insights} />
-                    </div>
-                ) : null}
+                {isPremium ? (
+                    <>
+                    {isLoading ? (
+                        <div className="flex items-center justify-center h-24">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    ) : insights ? (
+                        <div className="p-4 bg-background/50 rounded-lg">
+                           <MarkdownRenderer content={insights} />
+                        </div>
+                    ) : null}
 
-                <Button onClick={getInsights} disabled={isLoading} className="w-full">
-                    {isLoading ? 'Analisando suas finanças...' : 'Gerar Novos Insights'}
-                </Button>
+                    <Button onClick={getInsights} disabled={isLoading || transactions.length < 3} className="w-full">
+                        {transactions.length < 3 ? "Adicione mais transações para gerar insights" : (isLoading ? 'Analisando suas finanças...' : 'Gerar Novos Insights')}
+                    </Button>
+                    </>
+                ) : (
+                    <div className='text-center p-4 bg-background/50 rounded-lg flex flex-col items-center gap-4'>
+                        <p className='font-medium'>Este é um recurso exclusivo para assinantes Premium.</p>
+                        <Button asChild>
+                           <Link href="/configuracoes">
+                                <Zap className='mr-2 h-4 w-4' /> Fazer Upgrade Agora
+                           </Link>
+                        </Button>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

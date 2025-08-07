@@ -54,7 +54,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 function SettingsPage() {
   
   const { toast } = useToast();
-  const { user, logout } = useAuth();
+  const { user, logout, isPremium, upgradeToPremium } = useAuth();
   
   const getInitials = (name: string) => {
     const names = name.split(' ');
@@ -90,6 +90,15 @@ function SettingsPage() {
         toast({ title: 'Sucesso', description: 'Link copiado para a área de transferência!' });
     }
   };
+
+  const handleUpgrade = () => {
+    upgradeToPremium();
+    toast({
+      title: "Parabéns!",
+      description: "Você agora é um usuário Premium! Aproveite todos os recursos.",
+      className: "bg-green-500 text-white"
+    })
+  }
 
   return (
     <div className="flex flex-col min-h-screen w-full">
@@ -205,13 +214,13 @@ function SettingsPage() {
                             </ul>
                         </CardContent>
                         <CardFooter>
-                            <Button variant="outline" className='w-full' disabled>
+                            <Button variant="outline" className='w-full' disabled={!isPremium}>
                                Seu Plano Atual
                             </Button>
                         </CardFooter>
                     </Card>
-                     <Card className='flex flex-col border-primary/50 shadow-lg relative overflow-hidden'>
-                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">MAIS POPULAR</div>
+                     <Card className={cn('flex flex-col', isPremium && 'border-primary/50 shadow-lg relative overflow-hidden')}>
+                        {isPremium && <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">SEU PLANO</div>}
                         <CardHeader>
                             <CardTitle className='text-xl font-headline'>Premium</CardTitle>
                             <CardDescription>Sua experiência completa para dominar suas finanças, com um toque de inteligência.</CardDescription>
@@ -234,8 +243,8 @@ function SettingsPage() {
                             </ul>
                         </CardContent>
                         <CardFooter>
-                             <Button className='w-full'>
-                                <Zap className='mr-2 h-4 w-4' /> Testar Premium por 30 Dias Grátis
+                             <Button className='w-full' onClick={handleUpgrade} disabled={isPremium}>
+                                {isPremium ? "Seu Plano Premium" : <><Zap className='mr-2 h-4 w-4' /> Testar Premium por 30 Dias Grátis</>}
                             </Button>
                         </CardFooter>
                     </Card>

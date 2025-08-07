@@ -45,10 +45,12 @@ const getFirebaseAuthErrorMessage = (error: any): string => {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isPremium: boolean;
   login: (email: string, pass: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   signup: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
+  upgradeToPremium: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,18 +58,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPremium, setIsPremium] = useState(false); // Simulando o status do premium
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
-      if(user) {
+       if (user) {
+        // Em um app real, você verificaria o status da assinatura do usuário no seu banco de dados.
+        // Aqui, vamos manter a simulação. Se um usuário logar de novo, ele não será premium.
         router.push('/');
       }
     });
-
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [router]);
 
@@ -99,14 +102,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     try {
         await signOut(auth);
+        setIsPremium(false); // Resetar o status premium no logout
         router.push('/login');
     } catch (error: any) {
          throw new Error(getFirebaseAuthErrorMessage(error));
     }
   };
 
+  const upgradeToPremium = () => {
+    setIsPremium(true);
+    // Em um app real, aqui você iniciaria o fluxo de pagamento com Google Play, RevenueCat, etc.
+  };
+
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, isPremium, login, loginWithGoogle, signup, logout, upgradeToPremium }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,6 +8,7 @@ import {
   Sparkles,
   Loader2,
   Lightbulb,
+  Zap,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
 
@@ -25,6 +26,8 @@ import type { ShoppingItem } from '@/types';
 import { cn } from '@/lib/utils';
 import { handleShoppingListAnalysis } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import Link from 'next/link';
 
 type AnalysisResult = {
     estimatedCost: number;
@@ -41,6 +44,7 @@ export default function ShoppingListView({ items, setItems }: ShoppingListViewPr
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
+  const { isPremium } = useAuth();
 
   const handleAddItem = () => {
     if (newItemName.trim() === '') return;
@@ -154,33 +158,46 @@ export default function ShoppingListView({ items, setItems }: ShoppingListViewPr
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {isLoadingAnalysis ? (
-                        <div className="flex justify-center items-center h-24">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        </div>
-                    ) : analysisResult ? (
-                        <div className="space-y-4">
-                            <div>
-                                <h3 className="font-semibold text-lg">Custo Estimado</h3>
-                                <p className="text-2xl font-bold text-primary">
-                                    R$ {analysisResult.estimatedCost.toFixed(2).replace('.', ',')}
-                                </p>
+                   {isPremium ? (
+                    <>
+                        {isLoadingAnalysis ? (
+                            <div className="flex justify-center items-center h-24">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
                             </div>
-                            <div>
-                                <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
-                                   <Lightbulb className='h-5 w-5' /> Sugestões de Itens
-                                </h3>
-                                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                                    {analysisResult.suggestions.map((suggestion, index) => (
-                                        <li key={index}>{suggestion}</li>
-                                    ))}
-                                </ul>
+                        ) : analysisResult ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="font-semibold text-lg">Custo Estimado</h3>
+                                    <p className="text-2xl font-bold text-primary">
+                                        R$ {analysisResult.estimatedCost.toFixed(2).replace('.', ',')}
+                                    </p>
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                                    <Lightbulb className='h-5 w-5' /> Sugestões de Itens
+                                    </h3>
+                                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                                        {analysisResult.suggestions.map((suggestion, index) => (
+                                            <li key={index}>{suggestion}</li>
+                                        ))}
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
-                    ) : null}
-                    <Button onClick={handleAnalyzeList} disabled={isLoadingAnalysis} className="w-full mt-4">
-                        {isLoadingAnalysis ? "Analisando..." : "Analisar Lista com IA"}
-                    </Button>
+                        ) : null}
+                        <Button onClick={handleAnalyzeList} disabled={isLoadingAnalysis} className="w-full mt-4">
+                            {isLoadingAnalysis ? "Analisando..." : "Analisar Lista com IA"}
+                        </Button>
+                    </>
+                   ) : (
+                     <div className='text-center p-4 bg-background/50 rounded-lg flex flex-col items-center gap-4'>
+                        <p className='font-medium'>Este é um recurso exclusivo para assinantes Premium.</p>
+                        <Button asChild>
+                           <Link href="/configuracoes">
+                                <Zap className='mr-2 h-4 w-4' /> Fazer Upgrade Agora
+                           </Link>
+                        </Button>
+                    </div>
+                   )}
                 </CardContent>
             </Card>
         )}
