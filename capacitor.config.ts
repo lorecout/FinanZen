@@ -4,7 +4,12 @@ const config: CapacitorConfig = {
   appId: 'com.finanzen.app',
   appName: 'FinanZen',
   webDir: 'out',
-  bundledWebRuntime: false
+  bundledWebRuntime: false,
+  plugins: {
+    CapacitorHttp: {
+      enabled: true,
+    },
+  },
 };
 
 export default config;
