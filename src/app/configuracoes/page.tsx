@@ -11,6 +11,7 @@ import {
   Zap,
   CheckCircle,
   XCircle,
+  Lightbulb,
 } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -214,63 +215,64 @@ function SettingsPage() {
 
              <Card>
                 <CardHeader>
-                    <CardTitle>Plano</CardTitle>
-                    <CardDescription>Gerencie sua assinatura para remover anúncios e apoiar o app.</CardDescription>
+                    <CardTitle>Seu Plano</CardTitle>
+                    <CardDescription>Escolha o plano que melhor se adapta às suas necessidades e apoie o desenvolvimento do app.</CardDescription>
                 </CardHeader>
                 <CardContent className='grid gap-6 md:grid-cols-2'>
                     <Card className='flex flex-col'>
                         <CardHeader>
                             <CardTitle className='text-xl font-headline'>Gratuito</CardTitle>
-                            <CardDescription>Funcionalidades essenciais com a exibição de anúncios.</CardDescription>
+                            <CardDescription>O essencial para organizar suas finanças, com suporte de anúncios.</CardDescription>
                         </CardHeader>
                         <CardContent className='flex-grow'>
                             <p className="text-2xl font-bold">R$ 0<span className='text-sm font-normal text-muted-foreground'>/mês</span></p>
                             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                    <span>Transações Ilimitadas</span>
+                                <li className="flex items-start gap-2">
+                                    <CheckCircle className="h-4 w-4 mt-1 text-green-500 shrink-0" />
+                                    <span>Controle de transações, metas, contas e lista de compras.</span>
                                 </li>
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                    <span>Metas e Contas</span>
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <XCircle className="h-4 w-4 text-destructive" />
+                                <li className="flex items-start gap-2">
+                                    <XCircle className="h-4 w-4 mt-1 text-destructive shrink-0" />
                                     <span>Experiência sem Anúncios</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                    <XCircle className="h-4 w-4 mt-1 text-destructive shrink-0" />
+                                    <span>Insights Financeiros com IA</span>
                                 </li>
                             </ul>
                         </CardContent>
                         <CardFooter>
                             <Button variant="outline" className='w-full' disabled>
-                               Plano Atual
+                               Seu Plano Atual
                             </Button>
                         </CardFooter>
                     </Card>
-                     <Card className='flex flex-col border-primary/50 shadow-lg'>
+                     <Card className='flex flex-col border-primary/50 shadow-lg relative overflow-hidden'>
+                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">MAIS POPULAR</div>
                         <CardHeader>
                             <CardTitle className='text-xl font-headline'>Premium</CardTitle>
-                            <CardDescription>Aproveite o FinanZen ao máximo, sem interrupções.</CardDescription>
+                            <CardDescription>Sua experiência completa para dominar suas finanças.</CardDescription>
                         </CardHeader>
                         <CardContent className='flex-grow'>
                             <p className="text-2xl font-bold">R$ 9,90<span className='text-sm font-normal text-muted-foreground'>/mês</span></p>
-                            <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                                 <li className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                    <span>Transações Ilimitadas</span>
+                             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                                 <li className="flex items-start gap-2">
+                                    <CheckCircle className="h-4 w-4 mt-1 text-green-500 shrink-0" />
+                                    <span>Todos os recursos do plano gratuito.</span>
                                 </li>
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                    <span>Metas e Contas</span>
+                                <li className="flex items-start gap-2">
+                                    <CheckCircle className="h-4 w-4 mt-1 text-green-500 shrink-0" />
+                                    <span>Experiência 100% livre de anúncios.</span>
                                 </li>
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                    <span>Experiência sem Anúncios</span>
+                                <li className="flex items-start font-semibold text-primary/90 gap-2">
+                                    <Lightbulb className="h-4 w-4 mt-1 text-primary shrink-0" />
+                                    <span>Insights e dicas com Inteligência Artificial.</span>
                                 </li>
                             </ul>
                         </CardContent>
                         <CardFooter>
                              <Button className='w-full'>
-                                <Zap className='mr-2 h-4 w-4' /> Fazer Upgrade
+                                <Zap className='mr-2 h-4 w-4' /> Fazer Upgrade para Premium
                             </Button>
                         </CardFooter>
                     </Card>
