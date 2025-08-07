@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from "next/link"
 import {
   CircleUser,
@@ -36,9 +36,10 @@ import RecentTransactions from '@/components/dashboard/recent-transactions';
 import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import Logo from '@/components/logo';
 import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
-import { type Transaction } from '@/types';
+import { type Transaction, type Goal } from '@/types';
 import { getNavItems } from '@/components/dashboard/mobile-nav';
 import { usePathname } from 'next/navigation';
+import GoalsSummary from '@/components/dashboard/goals-summary';
 
 
 const initialTransactions: Transaction[] = [
@@ -100,8 +101,37 @@ const initialTransactions: Transaction[] = [
   }
 ];
 
+const initialGoals: Goal[] = [
+    {
+      id: uuidv4(),
+      name: "Viagem para o Japão",
+      targetAmount: 15000,
+      currentAmount: 5250,
+    },
+    {
+      id: uuidv4(),
+      name: "Entrada do Apartamento",
+      targetAmount: 50000,
+      currentAmount: 25000,
+    },
+    {
+      id: uuidv4(),
+      name: "Novo Computador",
+      targetAmount: 8000,
+      currentAmount: 7500,
+    },
+     {
+      id: uuidv4(),
+      name: "Reserva de Emergência",
+      targetAmount: 10000,
+      currentAmount: 10000,
+    },
+];
+
+
 export default function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+  const [goals, setGoals] = useState<Goal[]>(initialGoals);
 
   const handleAddTransaction = (newTransactionData: AnalyzeTransactionOutput) => {
     const newTransaction: Transaction = {
@@ -116,6 +146,29 @@ export default function Dashboard() {
 
   const handleDeleteTransaction = (idToDelete: string) => {
     setTransactions(prev => prev.filter((tx) => tx.id !== idToDelete));
+  };
+
+  const handleContributeToGoal = (goalId: string, amount: number) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) return;
+
+    // Add to goal
+    setGoals(prevGoals =>
+      prevGoals.map(g =>
+        g.id === goalId ? { ...g, currentAmount: g.currentAmount + amount } : g
+      )
+    );
+
+    // Create new expense transaction
+    const newTransaction: Transaction = {
+      id: uuidv4(),
+      amount: amount,
+      description: `Contribuição para: ${goal.name}`,
+      category: 'Metas',
+      date: new Date().toISOString(),
+      type: 'expense'
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
   };
   
   const summary = useMemo(() => {
@@ -270,6 +323,7 @@ export default function Dashboard() {
             </Card>
           </div>
            <div className="grid gap-4 md:gap-6">
+            <GoalsSummary goals={goals} onContribute={handleContributeToGoal} />
             <RecentTransactions transactions={transactions} onDelete={handleDeleteTransaction} />
           </div>
         </main>
