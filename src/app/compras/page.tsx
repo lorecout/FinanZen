@@ -140,7 +140,7 @@ export default function ShoppingListPage() {
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild><Link href="/configuracoes">Configurações</Link></DropdownMenuItem>
-              <DropdownMenuItem>Suporte</DropdownMenuItem>
+              <DropdownMenuItem asChild><a href="mailto:suporte@finanzen.com">Suporte</a></DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Sair</DropdownMenuItem>
             </DropdownMenuContent>
