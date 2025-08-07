@@ -5,11 +5,6 @@ const config: CapacitorConfig = {
   appName: 'FinanZen',
   webDir: 'out',
   bundledWebRuntime: false,
-  plugins: {
-    CapacitorHttp: {
-      enabled: true,
-    },
-  },
 };
 
 export default config;
