@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState, useMemo, useActionState, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from "next/link"
 import {
   CircleUser,
@@ -9,7 +9,6 @@ import {
   DollarSign,
   Landmark,
   Menu,
-  Package2,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
 
@@ -38,7 +37,8 @@ import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import Logo from '@/components/logo';
 import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
 import { type Transaction } from '@/types';
-import { navItems } from '@/components/dashboard/mobile-nav';
+import { getNavItems } from '@/components/dashboard/mobile-nav';
+import { usePathname } from 'next/navigation';
 
 
 const initialTransactions: Transaction[] = [
@@ -128,11 +128,14 @@ export default function Dashboard() {
     const balance = income - expense;
     return { income, expense, balance };
   }, [transactions]);
+  
+  const navItems = useMemo(() => getNavItems(3), []); // Example count
+  const pathname = usePathname();
 
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       {navItems.map((item) => {
-        const isActive = item.href === '/';
+        const isActive = pathname === item.href;
         return (
             <Link
             key={item.label}
@@ -141,11 +144,11 @@ export default function Dashboard() {
             >
             <item.icon className="h-4 w-4" />
             {item.label}
-            {item.badge && (
+            {item.badge ? (
                 <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
                 {item.badge}
                 </Badge>
-            )}
+            ): null}
             </Link>
         )
       })}
@@ -201,22 +204,6 @@ export default function Dashboard() {
               <div className="flex-1 overflow-y-auto pt-2">
                 {navContent}
               </div>
-              <div className="mt-auto p-4 border-t">
-                <Card>
-                  <CardHeader className="p-2 pt-0 md:p-4">
-                    <CardTitle>Upgrade to Pro</CardTitle>
-                    <CardDescription>
-                      Unlock all features and get unlimited access to our
-                      support team.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                    <Button size="sm" className="w-full">
-                      Upgrade
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
             </SheetContent>
           </Sheet>
 
@@ -247,13 +234,11 @@ export default function Dashboard() {
               title="Receitas" 
               value={`R$ ${summary.income.toFixed(2).replace('.', ',')}`} 
               icon={DollarSign} 
-              percentageChange={34.1} 
             />
             <SummaryCard 
               title="Despesas" 
               value={`R$ ${summary.expense.toFixed(2).replace('.', ',')}`} 
               icon={CreditCard} 
-              percentageChange={-12.4} 
             />
             <SummaryCard 
               title="Saldo Atual" 
@@ -292,3 +277,5 @@ export default function Dashboard() {
     </div>
   )
 }
+
+    

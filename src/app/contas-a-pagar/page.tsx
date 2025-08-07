@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from "next/link"
 import {
   CircleUser,
@@ -10,7 +10,10 @@ import {
   Landmark,
   Menu,
   Package2,
-  MoreHorizontal
+  MoreHorizontal,
+  Trash2,
+  Edit,
+  CheckCircle,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
 
@@ -39,9 +42,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Logo from '@/components/logo';
-import { navItems } from '@/components/dashboard/mobile-nav';
+import { navItems as getNavItems } from '@/components/dashboard/mobile-nav';
 import type { Bill } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -108,6 +122,22 @@ const getStatusText = (status: Bill['status']) => {
 
 export default function BillsPage() {
   const [bills, setBills] = useState<Bill[]>(initialBills);
+  
+  const pendingBillsCount = useMemo(() => {
+    return bills.filter(bill => bill.status === 'due' || bill.status === 'overdue').length;
+  }, [bills]);
+
+  const navItems = useMemo(() => getNavItems(pendingBillsCount), [pendingBillsCount]);
+
+
+  const handleMarkAsPaid = (id: string) => {
+      setBills(bills.map(bill => bill.id === id ? {...bill, status: 'paid'} : bill));
+  }
+
+  const handleDeleteBill = (id: string) => {
+    setBills(bills.filter(bill => bill.id !== id));
+  }
+
 
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -121,20 +151,16 @@ export default function BillsPage() {
             >
             <item.icon className="h-4 w-4" />
             {item.label}
-            {item.badge && (
+            {item.badge ? (
                 <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
                 {item.badge}
                 </Badge>
-            )}
+            ) : null}
             </Link>
         )
       })}
     </nav>
   );
-
-  const handleMarkAsPaid = (id: string) => {
-      setBills(bills.map(bill => bill.id === id ? {...bill, status: 'paid'} : bill));
-  }
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -183,22 +209,6 @@ export default function BillsPage() {
               </div>
               <div className="flex-1 overflow-y-auto pt-2">
                 {navContent}
-              </div>
-              <div className="mt-auto p-4 border-t">
-                <Card>
-                  <CardHeader className="p-2 pt-0 md:p-4">
-                    <CardTitle>Upgrade to Pro</CardTitle>
-                    <CardDescription>
-                      Unlock all features and get unlimited access to our
-                      support team.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                    <Button size="sm" className="w-full">
-                      Upgrade
-                    </Button>
-                  </CardContent>
-                </Card>
               </div>
             </SheetContent>
           </Sheet>
@@ -269,10 +279,34 @@ export default function BillsPage() {
                                             </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                            <DropdownMenuItem onSelect={() => handleMarkAsPaid(bill.id)} disabled={bill.status === 'paid'}>Marcar como Paga</DropdownMenuItem>
-                                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-destructive">Excluir</DropdownMenuItem>
+                                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                                <DropdownMenuItem onSelect={() => handleMarkAsPaid(bill.id)} disabled={bill.status === 'paid'}>
+                                                  <CheckCircle className='mr-2 h-4 w-4' /> Marcar como Paga
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem>
+                                                  <Edit className='mr-2 h-4 w-4' /> Editar
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <AlertDialog>
+                                                  <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" className="w-full justify-start text-sm text-destructive font-normal p-2 m-0 h-auto hover:bg-destructive/10">
+                                                      <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                                    </Button>
+                                                  </AlertDialogTrigger>
+                                                  <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                      <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                                      <AlertDialogDescription>
+                                                        Essa ação não pode ser desfeita. Isso excluirá permanentemente a conta
+                                                        "{bill.name}".
+                                                      </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                      <AlertDialogAction onClick={() => handleDeleteBill(bill.id)} className={cn(buttonVariants({variant: 'destructive'}))}>Excluir</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                  </AlertDialogContent>
+                                                </AlertDialog>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -288,3 +322,4 @@ export default function BillsPage() {
   )
 }
 
+    
