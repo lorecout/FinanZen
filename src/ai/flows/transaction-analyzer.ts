@@ -22,7 +22,7 @@ const AnalyzeTransactionInputSchema = z.object({
 export type AnalyzeTransactionInput = z.infer<typeof AnalyzeTransactionInputSchema>;
 
 const AnalyzeTransactionOutputSchema = z.object({
-  amount: z.number().describe('The amount of the transaction.'),
+  amount: z.number().describe('The amount of the transaction, always as a positive number.'),
   description: z.string().describe('A description of the transaction.'),
   category: z.string().describe('The category of the transaction.'),
   isRecurring: z
@@ -45,14 +45,16 @@ const prompt = ai.definePrompt({
 
   Analise o texto fornecido e identifique o valor da transação, uma descrição concisa, a categoria mais adequada e determine se é uma transação única ou uma conta recorrente.
 
+  O valor da transação ('amount') deve ser sempre um número positivo, mesmo que seja uma despesa.
+
   Texto: {{{text}}}
 
   Responda em formato JSON seguindo o schema AnalyzeTransactionOutputSchema.
   {
-    "amount": valor da transação (em números),
-    "description": descrição concisa da transação,
-    "category": categoria da transação,
-    "isRecurring": verdadeiro se for uma conta recorrente, falso se for uma transação única
+    "amount": valor da transação (sempre como um número positivo),
+    "description": "descrição concisa da transação",
+    "category": "categoria da transação",
+    "isRecurring": true se for uma conta recorrente, false se for uma transação única
   }`,
 });
 

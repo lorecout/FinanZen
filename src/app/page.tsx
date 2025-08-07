@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from "next/link"
 import {
   Activity,
@@ -19,6 +19,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react"
+import { v4 as uuidv4 } from 'uuid';
 
 import {
   Avatar,
@@ -49,9 +50,12 @@ import RecentTransactions from '@/components/dashboard/recent-transactions';
 import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import Logo from '@/components/logo';
 import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
+import { type Transaction } from '@/types';
 
-const initialTransactions = [
+
+const initialTransactions: Transaction[] = [
   {
+    id: uuidv4(),
     description: "Salário - Empresa X",
     amount: 5329.00,
     date: "2024-07-01",
@@ -59,6 +63,7 @@ const initialTransactions = [
     category: "Salário"
   },
   {
+    id: uuidv4(),
     description: "Aluguel",
     amount: 1500.00,
     date: "2024-07-05",
@@ -66,6 +71,7 @@ const initialTransactions = [
     category: "Moradia"
   },
   {
+    id: uuidv4(),
     description: "Supermercado Pão de Açúcar",
     amount: 345.50,
     date: "2024-07-06",
@@ -73,6 +79,7 @@ const initialTransactions = [
     category: "Alimentação"
   },
   {
+    id: uuidv4(),
     description: "Cinema - Filme novo",
     amount: 55.00,
     date: "2024-07-07",
@@ -80,6 +87,7 @@ const initialTransactions = [
     category: "Lazer"
   },
   {
+    id: uuidv4(),
     description: "Gasolina Posto Shell",
     amount: 150.00,
     date: "2024-07-10",
@@ -87,6 +95,7 @@ const initialTransactions = [
     category: "Transporte"
   },
   {
+    id: uuidv4(),
     description: "Conta de Luz",
     amount: 120.70,
     date: "2024-07-12",
@@ -94,6 +103,7 @@ const initialTransactions = [
     category: "Moradia"
   },
   {
+    id: uuidv4(),
     description: "Farmácia",
     amount: 75.20,
     date: "2024-07-15",
@@ -102,30 +112,37 @@ const initialTransactions = [
   }
 ];
 
-type Transaction = {
-  description: string;
-  amount: number;
-  date: string;
-  type: "income" | "expense";
-  category: string;
-};
-
-
 export default function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
 
   const handleAddTransaction = (newTransactionData: AnalyzeTransactionOutput) => {
     const newTransaction: Transaction = {
+      id: uuidv4(),
       ...newTransactionData,
       date: new Date().toISOString(),
-      type: newTransactionData.amount >= 0 ? 'income' : 'expense'
+      // The AI now returns positive amounts for expenses, so we rely on the isRecurring flag (or a better indicator)
+      // For now, we'll assume non-recurring are expenses unless amount is very high (heuristic)
+      // A better approach would be for the AI to return the transaction type.
+      type: newTransactionData.description.toLowerCase().includes('salário') || newTransactionData.description.toLowerCase().includes('renda') ? 'income' : 'expense',
+      amount: newTransactionData.amount // Amount is now always positive
     };
     setTransactions(prev => [newTransaction, ...prev]);
   };
 
-  const handleDeleteTransaction = (indexToDelete: number) => {
-    setTransactions(prev => prev.filter((_, index) => index !== indexToDelete));
+  const handleDeleteTransaction = (idToDelete: string) => {
+    setTransactions(prev => prev.filter((tx) => tx.id !== idToDelete));
   };
+  
+  const summary = useMemo(() => {
+    const income = transactions
+      .filter(t => t.type === 'income')
+      .reduce((acc, t) => acc + t.amount, 0);
+    const expense = transactions
+      .filter(t => t.type === 'expense')
+      .reduce((acc, t) => acc + t.amount, 0);
+    const balance = income - expense;
+    return { income, expense, balance };
+  }, [transactions]);
 
 
   return (
@@ -259,9 +276,24 @@ export default function Dashboard() {
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <SummaryCard title="Receitas" value="R$ 5.329" icon={DollarSign} percentageChange={34.1} />
-            <SummaryCard title="Despesas" value="R$ 2.120" icon={CreditCard} percentageChange={-12.4} />
-            <SummaryCard title="Saldo Atual" value="R$ 12.870" icon={Landmark} className="sm:col-span-2 lg:col-span-2" />
+             <SummaryCard 
+              title="Receitas" 
+              value={`R$ ${summary.income.toFixed(2).replace('.', ',')}`} 
+              icon={DollarSign} 
+              percentageChange={34.1} 
+            />
+            <SummaryCard 
+              title="Despesas" 
+              value={`R$ ${summary.expense.toFixed(2).replace('.', ',')}`} 
+              icon={CreditCard} 
+              percentageChange={-12.4} 
+            />
+            <SummaryCard 
+              title="Saldo Atual" 
+              value={`R$ ${summary.balance.toFixed(2).replace('.', ',')}`} 
+              icon={Landmark} 
+              className="sm:col-span-2 lg:col-span-2" 
+            />
           </div>
           <div className="grid gap-4 md:gap-6 lg:grid-cols-5">
              <Card className="lg:col-span-3">
@@ -293,5 +325,3 @@ export default function Dashboard() {
     </div>
   )
 }
-
-    

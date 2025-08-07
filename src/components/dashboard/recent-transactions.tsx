@@ -17,18 +17,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Trash2 } from "lucide-react"
+import { type Transaction } from "@/types"
 
-type Transaction = {
-  description: string;
-  amount: number;
-  date: string;
-  type: "income" | "expense";
-  category: string;
-};
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
-  onDelete: (index: number) => void;
+  onDelete: (id: string) => void;
 };
 
 
@@ -52,8 +46,8 @@ export default function RecentTransactions({ transactions, onDelete }: RecentTra
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((tx, index) => (
-                <TableRow key={index}>
+              {transactions.map((tx) => (
+                <TableRow key={tx.id}>
                   <TableCell>
                     <div className="font-medium">{tx.description}</div>
                     <div className="text-sm text-muted-foreground">
@@ -72,7 +66,7 @@ export default function RecentTransactions({ transactions, onDelete }: RecentTra
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(index)}>
+                    <Button variant="ghost" size="icon" onClick={() => onDelete(tx.id)}>
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Excluir</span>
                     </Button>
@@ -86,5 +80,3 @@ export default function RecentTransactions({ transactions, onDelete }: RecentTra
     </Card>
   )
 }
-
-    
