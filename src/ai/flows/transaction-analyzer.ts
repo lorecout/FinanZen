@@ -5,12 +5,11 @@
  * @fileOverview An AI agent that extracts transaction details from natural language text in Portuguese.
  *
  * - analyzeTransaction - A function that handles the transaction analysis process.
- * - AnalyzeTransactionInput - The input type for the analyzeTransaction function.
- * - AnalyzeTransactionOutput - The return type for the analyzeTransaction function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { AnalyzeTransactionOutputSchema } from '@/types/schemas';
 
 const AnalyzeTransactionInputSchema = z.object({
   text: z
@@ -20,17 +19,6 @@ const AnalyzeTransactionInputSchema = z.object({
     ),
 });
 export type AnalyzeTransactionInput = z.infer<typeof AnalyzeTransactionInputSchema>;
-
-const AnalyzeTransactionOutputSchema = z.object({
-  amount: z.number().describe('The amount of the transaction, always as a positive number.'),
-  description: z.string().describe('A description of the transaction.'),
-  category: z.string().describe('The category of the transaction.'),
-  isRecurring: z
-    .boolean()
-    .describe(
-      'Whether the transaction is a one-time transaction or a recurring bill.'
-    ),
-});
 export type AnalyzeTransactionOutput = z.infer<typeof AnalyzeTransactionOutputSchema>;
 
 export async function analyzeTransaction(input: AnalyzeTransactionInput): Promise<AnalyzeTransactionOutput> {

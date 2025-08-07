@@ -1,22 +1,23 @@
 "use server";
 
-import { analyzeTransaction, AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
+import { analyzeTransaction, type AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
+import { generateFinancialInsights, type GenerateFinancialInsightsInput } from "@/ai/flows/financial-insights-flow";
 import { z } from "zod";
 
 const formSchema = z.object({
   text: z.string().min(1, "Por favor, insira uma transação."),
 });
 
-type State = {
+type TransactionState = {
   success: boolean;
   message: string;
   data?: AnalyzeTransactionOutput;
 };
 
 export async function handleTransactionAnalysis(
-  prevState: State | undefined,
+  prevState: TransactionState | undefined,
   formData: FormData
-): Promise<State> {
+): Promise<TransactionState> {
   try {
     const validatedFields = formSchema.safeParse({
       text: formData.get("text"),
@@ -31,9 +32,6 @@ export async function handleTransactionAnalysis(
 
     const result = await analyzeTransaction({ text: validatedFields.data.text });
 
-    // Here you would typically save the transaction to your database (e.g., Firestore)
-    // For now, we just return the parsed data.
-
     return {
       success: true,
       message: "Transação analisada com sucesso!",
@@ -45,6 +43,33 @@ export async function handleTransactionAnalysis(
     return {
       success: false,
       message: `Erro ao analisar a transação: ${errorMessage}`,
+    };
+  }
+}
+
+
+type InsightState = {
+  success: boolean;
+  message: string;
+  data?: string;
+}
+
+export async function handleFinancialInsights(
+  input: GenerateFinancialInsightsInput
+): Promise<InsightState> {
+  try {
+    const result = await generateFinancialInsights(input);
+    return {
+      success: true,
+      message: "Insights gerados com sucesso!",
+      data: result,
+    };
+  } catch (error) {
+    console.error("Error generating insights:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    return {
+      success: false,
+      message: `Erro ao gerar insights: ${errorMessage}`,
     };
   }
 }

@@ -8,7 +8,6 @@ import {
   Landmark,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
-import Image from 'next/image';
 
 import {
   Card,
@@ -25,6 +24,7 @@ import type { AnalyzeTransactionOutput } from '@/ai/flows/transaction-analyzer';
 import { type Transaction, type Goal } from '@/types';
 import GoalsSummary from '@/components/dashboard/goals-summary';
 import { Button } from '../ui/button';
+import FinancialInsights from './financial-insights';
 
 
 type DashboardViewProps = {
@@ -106,6 +106,7 @@ export default function DashboardView({ transactions, setTransactions, goals, se
           className="sm:col-span-2 lg:col-span-2" 
         />
       </div>
+      <FinancialInsights transactions={transactions} />
       <div id="add-transaction-form" className="grid gap-4 md:gap-6 lg:grid-cols-5">
           <Card className="lg:col-span-3">
           <CardHeader>
