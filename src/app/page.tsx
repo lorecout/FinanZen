@@ -1,6 +1,7 @@
+
 "use client"
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useActionState, useEffect, useRef } from 'react';
 import Link from "next/link"
 import {
   CircleUser,
@@ -130,21 +131,24 @@ export default function Dashboard() {
 
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-      {navItems.map((item) => (
-        <Link
-          key={item.label}
-          href={item.href}
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${item.active ? 'bg-muted text-primary' : ''}`}
-        >
-          <item.icon className="h-4 w-4" />
-          {item.label}
-          {item.badge && (
-            <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-              {item.badge}
-            </Badge>
-          )}
-        </Link>
-      ))}
+      {navItems.map((item) => {
+        const isActive = item.href === '/';
+        return (
+            <Link
+            key={item.label}
+            href={item.href}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary ${isActive ? 'bg-muted text-primary' : ''}`}
+            >
+            <item.icon className="h-4 w-4" />
+            {item.label}
+            {item.badge && (
+                <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
+                {item.badge}
+                </Badge>
+            )}
+            </Link>
+        )
+      })}
     </nav>
   );
 
@@ -190,14 +194,14 @@ export default function Dashboard() {
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
-              <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+            <SheetContent side="left" className="flex flex-col p-0">
+               <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                   <Logo />
               </div>
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto pt-2">
                 {navContent}
               </div>
-              <div className="mt-auto p-4">
+              <div className="mt-auto p-4 border-t">
                 <Card>
                   <CardHeader className="p-2 pt-0 md:p-4">
                     <CardTitle>Upgrade to Pro</CardTitle>
