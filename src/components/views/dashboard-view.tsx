@@ -6,7 +6,6 @@ import {
   CreditCard,
   DollarSign,
   Landmark,
-  X,
 } from "lucide-react"
 import { v4 as uuidv4 } from 'uuid';
 import { startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear } from 'date-fns';
@@ -20,7 +19,6 @@ import {
 } from "@/components/ui/card"
 import SummaryCard from '@/components/dashboard/summary-card';
 import ExpenseChart from '@/components/dashboard/expense-chart';
-import RecentTransactions from '@/components/dashboard/recent-transactions';
 import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
 import type { AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
 import { type Transaction, type Goal } from '@/types';
@@ -29,8 +27,8 @@ import { Button } from '../ui/button';
 import FinancialInsights from './financial-insights';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
+import RecentTransactions from '../dashboard/recent-transactions';
 
 
 type DashboardViewProps = {
@@ -227,27 +225,12 @@ export default function DashboardView({ transactions, setTransactions, goals, se
         )}
         <GoalsSummary goals={goals} onContribute={handleContributeToGoal} />
         
-        <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle className="font-headline text-xl">Transações Recentes</CardTitle>
-                        <CardDescription>
-                            {selectedCategory ? `Exibindo despesas da categoria "${selectedCategory}"` : "Suas atividades financeiras mais recentes."}
-                        </CardDescription>
-                    </div>
-                    {selectedCategory && (
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedCategory(null)}>
-                           <X className="mr-2 h-4 w-4" />
-                            Limpar Filtro
-                        </Button>
-                    )}
-                </div>
-            </CardHeader>
-            <CardContent>
-                <RecentTransactions transactions={filteredTransactions} onDelete={handleDeleteTransaction} />
-            </CardContent>
-        </Card>
+        <RecentTransactions 
+          transactions={filteredTransactions} 
+          onDelete={handleDeleteTransaction}
+          selectedCategory={selectedCategory}
+          onClearFilter={() => setSelectedCategory(null)}
+        />
       </div>
     </>
   )
