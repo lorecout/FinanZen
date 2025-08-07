@@ -15,7 +15,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -32,11 +32,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Logo from '@/components/logo';
 import { getNavItems } from '@/components/dashboard/mobile-nav';
 import type { Goal } from '@/types';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+
 
 const initialGoals: Goal[] = [
     {
@@ -65,12 +90,148 @@ const initialGoals: Goal[] = [
     },
 ];
 
+type GoalDialogProps = {
+  goal?: Goal | null;
+  onSave: (goal: Goal) => void;
+  trigger: React.ReactNode;
+  isEdit?: boolean;
+}
+
+function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) {
+  const [name, setName] = useState(goal?.name || '');
+  const [targetAmount, setTargetAmount] = useState(goal?.targetAmount || '');
+  const [open, setOpen] = useState(false);
+
+  const handleSave = () => {
+    const newGoal: Goal = {
+      id: goal?.id || uuidv4(),
+      name,
+      targetAmount: Number(targetAmount),
+      currentAmount: goal?.currentAmount || 0,
+    };
+    onSave(newGoal);
+    setName('');
+    setTargetAmount('');
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? 'Editar Meta' : 'Adicionar Nova Meta'}</DialogTitle>
+          <DialogDescription>
+            {isEdit ? 'Faça alterações na sua meta.' : 'Crie uma nova meta para acompanhar seu progresso.'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right">
+              Nome
+            </Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="targetAmount" className="text-right">
+              Valor Alvo (R$)
+            </Label>
+            <Input
+              id="targetAmount"
+              type="number"
+              value={targetAmount}
+              onChange={(e) => setTargetAmount(Number(e.target.value))}
+              className="col-span-3"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="submit" onClick={handleSave}>Salvar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; onContribute: (goalId: string, amount: number) => void; trigger: React.ReactNode }) {
+  const [amount, setAmount] = useState('');
+  const [open, setOpen] = useState(false);
+
+  const handleContribute = () => {
+    onContribute(goal.id, Number(amount));
+    setAmount('');
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Adicionar Contribuição</DialogTitle>
+          <DialogDescription>
+            Quanto você gostaria de adicionar para a meta "{goal.name}"?
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="amount" className="text-right">
+              Valor (R$)
+            </Label>
+            <Input
+              id="amount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+           <DialogClose asChild>
+            <Button variant="outline">Cancelar</Button>
+          </DialogClose>
+          <Button type="submit" onClick={handleContribute}>Adicionar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
 
-  // Example pending bills count
   const pendingBillsCount = 3;
   const navItems = useMemo(() => getNavItems(pendingBillsCount), [pendingBillsCount]);
+
+  const handleSaveGoal = (goalToSave: Goal) => {
+    setGoals(prevGoals => {
+      const existingGoal = prevGoals.find(g => g.id === goalToSave.id);
+      if (existingGoal) {
+        return prevGoals.map(g => (g.id === goalToSave.id ? goalToSave : g));
+      } else {
+        return [...prevGoals, goalToSave];
+      }
+    });
+  };
+
+  const handleDeleteGoal = (goalId: string) => {
+    setGoals(prevGoals => prevGoals.filter(g => g.id !== goalId));
+  };
+
+  const handleContribute = (goalId: string, amount: number) => {
+    setGoals(prevGoals =>
+      prevGoals.map(g =>
+        g.id === goalId ? { ...g, currentAmount: g.currentAmount + amount } : g
+      )
+    );
+  };
 
   const navContent = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -133,9 +294,14 @@ export default function GoalsPage() {
           <div className="w-full flex-1">
              <h1 className="text-lg font-semibold md:text-2xl font-headline hidden md:block">Minhas Metas</h1>
           </div>
-           <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Nova Meta
-            </Button>
+           <GoalDialog
+              onSave={handleSaveGoal}
+              trigger={
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Nova Meta
+                </Button>
+              }
+            />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
@@ -170,25 +336,62 @@ export default function GoalsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <PiggyBank className="mr-2 h-4 w-4" />
-                              Adicionar Dinheiro
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar Meta
-                            </DropdownMenuItem>
+
+                             <AddContributionDialog
+                              goal={goal}
+                              onContribute={handleContribute}
+                              trigger={
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <PiggyBank className="mr-2 h-4 w-4" />
+                                  Adicionar Dinheiro
+                                </DropdownMenuItem>
+                              }
+                            />
+
+                            <GoalDialog
+                              isEdit
+                              goal={goal}
+                              onSave={handleSaveGoal}
+                              trigger={
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Editar Meta
+                                </DropdownMenuItem>
+                              }
+                            />
+
                             <DropdownMenuSeparator />
-                             <DropdownMenuItem className='text-destructive focus:bg-destructive/10 focus:text-destructive'>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Excluir Meta
-                            </DropdownMenuItem>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                 <DropdownMenuItem className='text-destructive focus:bg-destructive/10 focus:text-destructive' onSelect={(e) => e.preventDefault()}>
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Excluir Meta
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Essa ação não pode ser desfeita. Isso excluirá permanentemente a meta "{goal.name}".
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className={cn(buttonVariants({ variant: 'destructive' }))}
+                                    onClick={() => handleDeleteGoal(goal.id)}
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          <Progress value={progress} />
+                           <Progress value={Math.min(100, progress)} />
                           <div className='text-sm text-muted-foreground'>
                               <span className='font-semibold text-primary'>
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(goal.currentAmount)}
@@ -199,7 +402,7 @@ export default function GoalsPage() {
                         </div>
                       </CardContent>
                        <CardFooter>
-                          <span className="text-xs text-muted-foreground">{progress.toFixed(0)}% completo</span>
+                          <span className="text-xs text-muted-foreground">{Math.min(100, progress).toFixed(0)}% completo</span>
                       </CardFooter>
                   </Card>
                 )
@@ -210,3 +413,5 @@ export default function GoalsPage() {
     </div>
   )
 }
+
+    
