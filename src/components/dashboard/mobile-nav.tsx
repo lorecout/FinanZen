@@ -20,7 +20,7 @@ export const getNavItems = (pendingBillsCount?: number): NavItem[] => [
   { href: "/", icon: LayoutGrid, label: "Dashboard" },
   { href: "/contas-a-pagar", icon: Wallet, label: "Contas a Pagar", badge: pendingBillsCount },
   { href: "/metas", icon: Target, label: "Metas" },
-  { href: "#", icon: ShoppingCart, label: "Compras" },
+  { href: "/compras", icon: ShoppingCart, label: "Compras" },
 ]
 
     

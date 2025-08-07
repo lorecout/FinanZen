@@ -27,3 +27,9 @@ export type Bill = {
   dueDate: string;
   status: 'paid' | 'due' | 'overdue';
 };
+
+export type ShoppingItem = {
+  id: string;
+  name: string;
+  checked: boolean;
+};
