@@ -1,4 +1,0 @@
-/*
-This file is used to patch the Capacitor Android library project.
-*/
-apply plugin: 'com.android.library'
