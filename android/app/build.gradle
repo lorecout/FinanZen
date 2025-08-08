@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     namespace "com.finanzen.app"
-    compileSdkVersion 34
+    compileSdk 34
     defaultConfig {
         applicationId "com.finanzen.app"
         minSdkVersion 22
@@ -19,15 +19,8 @@ android {
     }
 }
 
-repositories {
-    flatDir {
-        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
-    }
-}
-
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation project(':capacitor-android')
-    implementation 'com.google.android.material:material:1.12.0'
 }
