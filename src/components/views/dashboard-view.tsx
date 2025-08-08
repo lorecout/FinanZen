@@ -29,6 +29,7 @@ import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useAuth } from '@/hooks/use-auth';
 import RecentTransactions from '../dashboard/recent-transactions';
+import ExternalApiCard from '../dashboard/external-api-card';
 
 
 type DashboardViewProps = {
@@ -37,6 +38,7 @@ type DashboardViewProps = {
     goals: Goal[];
     setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
 }
+
 
 export default function DashboardView({ transactions, setTransactions, goals, setGoals }: DashboardViewProps) {
   const [timePeriod, setTimePeriod] = useState('this-month');
@@ -210,6 +212,7 @@ export default function DashboardView({ transactions, setTransactions, goals, se
         </Card>
       </div>
         <div className="grid gap-4 md:gap-6">
+        <ExternalApiCard />
         {!isPremium && (
             <Card className='w-full'>
                 <CardContent className='p-4 !pb-2 flex-col sm:flex-row flex items-center justify-center text-center gap-4 sm:text-left'>

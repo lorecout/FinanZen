@@ -1,77 +1,96 @@
-"use client"
+"use client";
 
-import { useActionState, useEffect, useRef } from "react";
-import { useFormStatus } from "react-dom";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { handleTransactionAnalysis } from "@/app/actions";
 import { Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "../ui/card";
 import type { AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} className="w-full" size="lg">
-      {pending ? "Analisando..." : "Adicionar Transação"}
-      <Sparkles className="ml-2 h-4 w-4" />
-    </Button>
-  );
-}
-
 type AiTransactionFormProps = {
   onAddTransaction: (data: AnalyzeTransactionOutput) => void;
 };
 
-
 export default function AiTransactionForm({ onAddTransaction }: AiTransactionFormProps) {
-  const [state, formAction] = useActionState(handleTransactionAnalysis, undefined);
+  const [text, setText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastTransaction, setLastTransaction] = useState<AnalyzeTransactionOutput | null>(null);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (state?.success && state.data) {
-      toast({
-        title: "Sucesso!",
-        description: state.message,
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setLastTransaction(null);
+
+    try {
+      const response = await fetch('/api/analyze-transaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
       });
-      onAddTransaction(state.data);
-      formRef.current?.reset();
-    } else if (state?.success === false) {
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        toast({
+          title: "Sucesso!",
+          description: result.message,
+        });
+        onAddTransaction(result.data);
+        setLastTransaction(result.data);
+        formRef.current?.reset();
+        setText("");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro!",
+          description: result.message,
+        });
+      }
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Erro!",
-        description: state.message,
+        description: "Ocorreu um erro ao se comunicar com o servidor.",
       });
+    } finally {
+      setIsLoading(false);
     }
-  }, [state, toast, onAddTransaction]);
+  };
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
       <div className="relative">
         <Textarea
           name="text"
           placeholder='Ex: "Aluguel R$ 1500" ou "Salário R$ 5000"'
           className="pr-10"
           rows={2}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          disabled={isLoading}
         />
         <Sparkles className="absolute right-3 top-3 h-5 w-5 text-primary/70" />
       </div>
-      <SubmitButton />
-      {state?.data && state.success && (
+      <Button type="submit" disabled={isLoading} className="w-full" size="lg">
+        {isLoading ? "Analisando..." : "Adicionar Transação"}
+        <Sparkles className="ml-2 h-4 w-4" />
+      </Button>
+      {lastTransaction && (
         <Card className="bg-muted/50">
           <CardContent className="p-4 text-sm">
             <h4 className="font-semibold mb-2">Dados da Última Transação Adicionada:</h4>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
               <p><strong>Valor:</strong></p>
-              <p>R$ {state.data.amount.toFixed(2).replace('.', ',')}</p>
+              <p>R$ {lastTransaction.amount.toFixed(2).replace('.', ',')}</p>
               <p><strong>Descrição:</strong></p>
-               <p>{state.data.description}</p>
+               <p>{lastTransaction.description}</p>
               <p><strong>Categoria:</strong></p>
-              <p>{state.data.category}</p>
+              <p>{lastTransaction.category}</p>
               <p><strong>Recorrente:</strong></p>
-               <p>{state.data.isRecurring ? 'Sim' : 'Não'}</p>
+               <p>{lastTransaction.isRecurring ? 'Sim' : 'Não'}</p>
             </div>
           </CardContent>
         </Card>
