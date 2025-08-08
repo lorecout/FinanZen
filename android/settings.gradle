@@ -12,7 +12,9 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "FinanZen"
+
+rootProject.name = "android"
 include ':app'
 include ':capacitor-android'
 project(':capacitor-android').projectDir = new File(settingsDir, '../node_modules/@capacitor/android/capacitor')
+apply from: "capacitor.build.gradle"
