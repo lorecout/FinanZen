@@ -5,20 +5,16 @@ android {
     compileSdk 34
     defaultConfig {
         applicationId "com.finanzen.app"
-        minSdkVersion 22
-        targetSdkVersion 34
+        minSdk 22
+        targetSdk 34
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-    }
-    lintOptions {
-        abortOnError false
     }
 }
 
