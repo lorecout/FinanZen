@@ -57,6 +57,7 @@ function SettingsPage() {
   const { user, logout, isPremium, upgradeToPremium } = useAuth();
   
   const getInitials = (name: string) => {
+    if (!name) return 'U';
     const names = name.split(' ');
     const initials = names.map(n => n[0]).join('');
     return initials.toUpperCase().slice(0, 2);
@@ -119,7 +120,7 @@ function SettingsPage() {
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.photoURL || ''} alt={`@${user?.displayName}`} />
+                      <AvatarImage src={user?.photoURL || ''} alt={`@${user?.displayName || user?.email}`} />
                       <AvatarFallback>{getInitials(user?.displayName || user?.email || 'U')}</AvatarFallback>
                   </Avatar>
                   <span className="sr-only">Toggle user menu</span>
