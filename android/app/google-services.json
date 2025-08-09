@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "528738428971",
+    "project_id": "finanzen-sokph",
+    "storage_bucket": "finanzen-sokph.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:528738428971:android:0f8bd69755b757f57ba26e",
+        "android_client_info": {
+          "package_name": "com.finanzen.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDF1AS5a2f_Vw8-vk_3_71lHrtwusFSd5o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
