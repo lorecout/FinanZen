@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDatabase, ref, push, set } from 'firebase/database';
+import { getDatabase, ref, push, set } from 'firebase-admin/database';
 import { app } from '@/lib/firebase/server-app';
 import { getAuth } from 'firebase-admin/auth';
 import { headers } from 'next/headers';
