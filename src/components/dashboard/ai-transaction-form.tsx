@@ -7,9 +7,10 @@ import { Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "../ui/card";
 import type { AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
+import type { Transaction } from "@/types";
 
 type AiTransactionFormProps = {
-  onAddTransaction: (data: AnalyzeTransactionOutput) => void;
+  onAddTransaction: (data: Omit<Transaction, 'id'>) => void;
 };
 
 export default function AiTransactionForm({ onAddTransaction }: AiTransactionFormProps) {
@@ -38,10 +39,18 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
           title: "Sucesso!",
           description: result.message,
         });
-        onAddTransaction(result.data);
+        
+        const newTransaction: Omit<Transaction, 'id'> = {
+            ...result.data,
+            date: new Date().toISOString(),
+            type: result.data.description.toLowerCase().includes('salário') || result.data.description.toLowerCase().includes('renda') ? 'income' : 'expense',
+            amount: result.data.amount
+        };
+        onAddTransaction(newTransaction);
         setLastTransaction(result.data);
         formRef.current?.reset();
         setText("");
+
       } else {
         toast({
           variant: "destructive",

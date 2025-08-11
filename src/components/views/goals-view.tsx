@@ -9,7 +9,6 @@ import {
   Edit,
   PiggyBank
 } from "lucide-react"
-import { v4 as uuidv4 } from 'uuid';
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -57,7 +56,7 @@ import { cn } from '@/lib/utils';
 
 type GoalDialogProps = {
   goal?: Goal | null;
-  onSave: (goal: Goal) => void;
+  onSave: (goal: Omit<Goal, 'id'> | Goal) => void;
   trigger: React.ReactNode;
   isEdit?: boolean;
 }
@@ -69,13 +68,23 @@ function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) 
 
   const handleSave = () => {
     if(!name || !targetAmount) return;
-    const newGoal: Goal = {
-      id: goal?.id || uuidv4(),
-      name,
-      targetAmount: Number(targetAmount),
-      currentAmount: goal?.currentAmount || 0,
-    };
-    onSave(newGoal);
+    
+    if (isEdit && goal) {
+        const editedGoal: Goal = {
+            ...goal,
+            name,
+            targetAmount: Number(targetAmount),
+        };
+        onSave(editedGoal);
+    } else {
+        const newGoal: Omit<Goal, 'id'> = {
+            name,
+            targetAmount: Number(targetAmount),
+            currentAmount: 0,
+        };
+        onSave(newGoal);
+    }
+
     setName('');
     setTargetAmount('');
     setOpen(false);
@@ -138,13 +147,13 @@ function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) 
   );
 }
 
-function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; onContribute: (goalId: string, amount: number) => void; trigger: React.ReactNode }) {
+function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; onContribute: (goal: Goal, amount: number) => void; trigger: React.ReactNode }) {
   const [amount, setAmount] = useState('');
   const [open, setOpen] = useState(false);
 
   const handleContribute = () => {
     if(!amount || Number(amount) <= 0) return;
-    onContribute(goal.id, Number(amount));
+    onContribute(goal, Number(amount));
     setAmount('');
     setOpen(false);
   };
@@ -187,33 +196,17 @@ function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; on
 
 type GoalsViewProps = {
     goals: Goal[];
-    setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
+    addGoal: (goal: Omit<Goal, 'id'>) => void;
+    deleteGoal: (goalId: string) => void;
+    updateGoal: (goal: Goal) => void;
 }
 
-export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
-
-  const handleSaveGoal = (goalToSave: Goal) => {
-    setGoals(prevGoals => {
-      const existingGoal = prevGoals.find(g => g.id === goalToSave.id);
-      if (existingGoal) {
-        return prevGoals.map(g => (g.id === goalToSave.id ? goalToSave : g));
-      } else {
-        return [...prevGoals, goalToSave];
-      }
-    });
-  };
-
-  const handleDeleteGoal = (goalId: string) => {
-    setGoals(prevGoals => prevGoals.filter(g => g.id !== goalId));
-  };
-
-  const handleContribute = (goalId: string, amount: number) => {
-    setGoals(prevGoals =>
-      prevGoals.map(g =>
-        g.id === goalId ? { ...g, currentAmount: g.currentAmount + amount } : g
-      )
-    );
-     // Note: In a real app, you might want to create a transaction here as well
+export default function GoalsView({ goals, addGoal, deleteGoal, updateGoal }: GoalsViewProps) {
+  
+  const handleContribute = (goal: Goal, amount: number) => {
+    const updatedGoal = { ...goal, currentAmount: goal.currentAmount + amount };
+    updateGoal(updatedGoal);
+    // Note: In a real app, you might want to create a transaction here as well
   };
 
 
@@ -222,7 +215,7 @@ export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
        <div className='flex justify-between items-center mb-4 md:mb-6'>
         <h1 className="text-lg font-semibold md:text-2xl font-headline">Minhas Metas</h1>
         <GoalDialog
-            onSave={handleSaveGoal}
+            onSave={addGoal}
             trigger={
             <Button>
                 <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Nova Meta
@@ -231,7 +224,7 @@ export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
         />
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {goals.map(goal => {
+        {goals && goals.map(goal => {
           const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
           return (
             <Card key={goal.id}>
@@ -260,7 +253,7 @@ export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
                       <GoalDialog
                         isEdit
                         goal={goal}
-                        onSave={handleSaveGoal}
+                        onSave={updateGoal}
                         trigger={
                           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                             <Edit className="mr-2 h-4 w-4" />
@@ -288,7 +281,7 @@ export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction
                               className={cn(buttonVariants({ variant: 'destructive' }))}
-                              onClick={() => handleDeleteGoal(goal.id)}
+                              onClick={() => deleteGoal(goal.id)}
                             >
                               Excluir
                             </AlertDialogAction>
@@ -316,7 +309,7 @@ export default function GoalsView({ goals, setGoals }: GoalsViewProps) {
             </Card>
           )
         })}
-            {goals.length === 0 && (
+            {(!goals || goals.length === 0) && (
           <Card className="flex flex-col items-center justify-center p-6 text-center md:col-span-full">
               <CardHeader>
                   <CardTitle>Nenhuma meta encontrada</CardTitle>

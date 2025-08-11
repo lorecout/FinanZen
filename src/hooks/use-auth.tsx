@@ -11,10 +11,11 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
-    AuthError
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase/client-app';
+import { getDatabase, ref, onValue, set, push, remove, update } from "firebase/database";
+import { auth, app } from '@/lib/firebase/client-app';
 import { useRouter } from 'next/navigation';
+import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
 
 // Firebase error handler
 const getFirebaseAuthErrorMessage = (error: any): string => {
@@ -46,11 +47,26 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isPremium: boolean;
+  transactions: Transaction[];
+  goals: Goal[];
+  bills: Bill[];
+  shoppingItems: ShoppingItem[];
   login: (email: string, pass: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   signup: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   upgradeToPremium: () => void;
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  deleteTransaction: (transactionId: string) => void;
+  addGoal: (goal: Omit<Goal, 'id'>) => void;
+  deleteGoal: (goalId: string) => void;
+  updateGoal: (goal: Goal) => void;
+  addBill: (bill: Omit<Bill, 'id'>) => void;
+  deleteBill: (billId: string) => void;
+  updateBill: (bill: Bill) => void;
+  addShoppingItem: (item: Omit<ShoppingItem, 'id'>) => void;
+  deleteShoppingItem: (itemId: string) => void;
+  updateShoppingItem: (item: ShoppingItem) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,21 +74,56 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isPremium, setIsPremium] = useState(false); // Simulando o status do premium
+  const [isPremium, setIsPremium] = useState(false);
   const router = useRouter();
+
+  // Data states
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [bills, setBills] = useState<Bill[]>([]);
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+
+
+  // Firebase Realtime Database
+  const db = getDatabase(app);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
        if (user) {
-        // Em um app real, você verificaria o status da assinatura do usuário no seu banco de dados.
-        // Aqui, vamos manter a simulação. Se um usuário logar de novo, ele não será premium.
         router.push('/');
+        // Listen for data changes
+        const dataRef = ref(db, 'users/' + user.uid);
+        onValue(dataRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                setTransactions(data.transactions ? Object.values(data.transactions) : []);
+                setGoals(data.goals ? Object.values(data.goals) : []);
+                setBills(data.bills ? Object.values(data.bills) : []);
+                setShoppingItems(data.shoppingItems ? Object.values(data.shoppingItems) : []);
+                setIsPremium(data.isPremium || false);
+            } else {
+                // No data for user, reset states
+                setTransactions([]);
+                setGoals([]);
+                setBills([]);
+                setShoppingItems([]);
+                setIsPremium(false);
+            }
+        });
+
+      } else {
+        // User logged out, reset all data
+        setTransactions([]);
+        setGoals([]);
+        setBills([]);
+        setShoppingItems([]);
+        setIsPremium(false);
       }
     });
     return () => unsubscribe();
-  }, [router]);
+  }, [router, db]);
 
   const login = async (email: string, pass: string) => {
     try {
@@ -102,7 +153,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     try {
         await signOut(auth);
-        setIsPremium(false); // Resetar o status premium no logout
         router.push('/login');
     } catch (error: any) {
          throw new Error(getFirebaseAuthErrorMessage(error));
@@ -110,13 +160,121 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const upgradeToPremium = () => {
-    setIsPremium(true);
-    // Em um app real, aqui você iniciaria o fluxo de pagamento com Google Play, RevenueCat, etc.
+    if (user) {
+        const userRef = ref(db, 'users/' + user.uid + '/isPremium');
+        set(userRef, true);
+    }
+  };
+
+  // --- Data Functions ---
+  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
+    if (user) {
+        const transactionsRef = ref(db, 'users/' + user.uid + '/transactions');
+        const newTransactionRef = push(transactionsRef);
+        set(newTransactionRef, { ...transaction, id: newTransactionRef.key });
+    }
+  };
+
+  const deleteTransaction = (transactionId: string) => {
+    if (user) {
+        const transactionRef = ref(db, `users/${user.uid}/transactions/${transactionId}`);
+        remove(transactionRef);
+    }
+  };
+  
+  const addGoal = (goal: Omit<Goal, 'id'>) => {
+      if (user) {
+          const goalsRef = ref(db, 'users/' + user.uid + '/goals');
+          const newGoalRef = push(goalsRef);
+          set(newGoalRef, { ...goal, id: newGoalRef.key });
+      }
+  };
+
+  const deleteGoal = (goalId: string) => {
+      if (user) {
+          const goalRef = ref(db, `users/${user.uid}/goals/${goalId}`);
+          remove(goalRef);
+      }
+  };
+
+  const updateGoal = (goal: Goal) => {
+      if (user) {
+          const goalRef = ref(db, `users/${user.uid}/goals/${goal.id}`);
+          update(goalRef, goal);
+      }
+  };
+
+  const addBill = (bill: Omit<Bill, 'id'>) => {
+    if (user) {
+        const billsRef = ref(db, 'users/' + user.uid + '/bills');
+        const newBillRef = push(billsRef);
+        set(newBillRef, { ...bill, id: newBillRef.key });
+    }
+  };
+
+  const deleteBill = (billId: string) => {
+    if (user) {
+        const billRef = ref(db, `users/${user.uid}/bills/${billId}`);
+        remove(billRef);
+    }
+  };
+  
+  const updateBill = (bill: Bill) => {
+    if (user) {
+        const billRef = ref(db, `users/${user.uid}/bills/${bill.id}`);
+        update(billRef, bill);
+    }
+  };
+
+  const addShoppingItem = (item: Omit<ShoppingItem, 'id'>) => {
+    if (user) {
+        const itemsRef = ref(db, 'users/' + user.uid + '/shoppingItems');
+        const newItemRef = push(itemsRef);
+        set(newItemRef, { ...item, id: newItemRef.key });
+    }
+  };
+
+  const deleteShoppingItem = (itemId: string) => {
+    if (user) {
+        const itemRef = ref(db, `users/${user.uid}/shoppingItems/${itemId}`);
+        remove(itemRef);
+    }
+  };
+
+  const updateShoppingItem = (item: ShoppingItem) => {
+    if (user) {
+        const itemRef = ref(db, `users/${user.uid}/shoppingItems/${item.id}`);
+        update(itemRef, item);
+    }
   };
 
 
   return (
-    <AuthContext.Provider value={{ user, loading, isPremium, login, loginWithGoogle, signup, logout, upgradeToPremium }}>
+    <AuthContext.Provider value={{ 
+        user, 
+        loading, 
+        isPremium,
+        transactions,
+        goals,
+        bills,
+        shoppingItems,
+        login, 
+        loginWithGoogle, 
+        signup, 
+        logout, 
+        upgradeToPremium,
+        addTransaction,
+        deleteTransaction,
+        addGoal,
+        deleteGoal,
+        updateGoal,
+        addBill,
+        deleteBill,
+        updateBill,
+        addShoppingItem,
+        deleteShoppingItem,
+        updateShoppingItem
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -10,7 +10,6 @@ import {
   Lightbulb,
   Zap,
 } from "lucide-react"
-import { v4 as uuidv4 } from 'uuid';
 
 import { Button } from "@/components/ui/button"
 import {
@@ -36,10 +35,12 @@ type AnalysisResult = {
 
 type ShoppingListViewProps = {
     items: ShoppingItem[];
-    setItems: React.Dispatch<React.SetStateAction<ShoppingItem[]>>;
+    addItem: (item: Omit<ShoppingItem, 'id'>) => void;
+    deleteItem: (itemId: string) => void;
+    updateItem: (item: ShoppingItem) => void;
 }
 
-export default function ShoppingListView({ items, setItems }: ShoppingListViewProps) {
+export default function ShoppingListView({ items, addItem, deleteItem, updateItem }: ShoppingListViewProps) {
   const [newItemName, setNewItemName] = useState('');
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -48,25 +49,16 @@ export default function ShoppingListView({ items, setItems }: ShoppingListViewPr
 
   const handleAddItem = () => {
     if (newItemName.trim() === '') return;
-    const newItem: ShoppingItem = {
-        id: uuidv4(),
+    const newItem: Omit<ShoppingItem, 'id'> = {
         name: newItemName.trim(),
         checked: false,
     };
-    setItems(prevItems => [...prevItems, newItem]);
+    addItem(newItem);
     setNewItemName('');
   }
 
-  const handleToggleItem = (id: string) => {
-    setItems(prevItems => 
-      prevItems.map(item => 
-        item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
-  }
-
-  const handleDeleteItem = (id: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== id));
+  const handleToggleItem = (item: ShoppingItem) => {
+    updateItem({ ...item, checked: !item.checked });
   }
 
   const handleAnalyzeList = async () => {
@@ -74,7 +66,15 @@ export default function ShoppingListView({ items, setItems }: ShoppingListViewPr
     setAnalysisResult(null);
     const analysisItems = items.filter(item => !item.checked);
 
-    const result = await handleShoppingListAnalysis({ items: analysisItems });
+    // Convert to the format expected by the AI flow
+    const flowInputItems = analysisItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        checked: item.checked,
+    }));
+
+
+    const result = await handleShoppingListAnalysis({ items: flowInputItems });
 
     if (result.success && result.data) {
         setAnalysisResult(result.data);
@@ -113,13 +113,13 @@ export default function ShoppingListView({ items, setItems }: ShoppingListViewPr
                 </div>
                 
                 <div className='space-y-2'>
-                    {items.length > 0 ? (
+                    {items && items.length > 0 ? (
                         items.map(item => (
                         <div key={item.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50">
                             <Checkbox 
                                 id={item.id} 
                                 checked={item.checked}
-                                onCheckedChange={() => handleToggleItem(item.id)}
+                                onCheckedChange={() => handleToggleItem(item)}
                             />
                             <label
                                 htmlFor={item.id}
@@ -133,7 +133,7 @@ export default function ShoppingListView({ items, setItems }: ShoppingListViewPr
                                 variant="ghost" 
                                 size="icon" 
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                onClick={() => handleDeleteItem(item.id)}
+                                onClick={() => deleteItem(item.id)}
                             >
                                 <Trash2 className="h-4 w-4" />
                             </Button>
@@ -146,7 +146,7 @@ export default function ShoppingListView({ items, setItems }: ShoppingListViewPr
             </CardContent>
         </Card>
 
-        {items.filter(item => !item.checked).length > 0 && (
+        {items && items.filter(item => !item.checked).length > 0 && (
             <Card className="mt-4 border-primary/20">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">

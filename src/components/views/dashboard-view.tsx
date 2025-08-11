@@ -7,7 +7,6 @@ import {
   DollarSign,
   Landmark,
 } from "lucide-react"
-import { v4 as uuidv4 } from 'uuid';
 import { startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear } from 'date-fns';
 
 import {
@@ -20,8 +19,7 @@ import {
 import SummaryCard from '@/components/dashboard/summary-card';
 import ExpenseChart from '@/components/dashboard/expense-chart';
 import AiTransactionForm from '@/components/dashboard/ai-transaction-form';
-import type { AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
-import { type Transaction, type Goal } from '@/types';
+import type { Transaction, Goal } from '@/types';
 import GoalsSummary from '@/components/dashboard/goals-summary';
 import { Button } from '../ui/button';
 import FinancialInsights from './financial-insights';
@@ -34,57 +32,20 @@ import ExternalApiCard from '../dashboard/external-api-card';
 
 type DashboardViewProps = {
     transactions: Transaction[];
-    setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+    addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+    deleteTransaction: (transactionId: string) => void;
     goals: Goal[];
-    setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
+    handleContributeToGoal: (goalId: string, amount: number) => void;
 }
 
 
-export default function DashboardView({ transactions, setTransactions, goals, setGoals }: DashboardViewProps) {
+export default function DashboardView({ transactions, addTransaction, deleteTransaction, goals, handleContributeToGoal }: DashboardViewProps) {
   const [timePeriod, setTimePeriod] = useState('this-month');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { isPremium } = useAuth();
 
-
-  const handleAddTransaction = (newTransactionData: AnalyzeTransactionOutput) => {
-    const newTransaction: Transaction = {
-      id: uuidv4(),
-      ...newTransactionData,
-      date: new Date().toISOString(),
-      type: newTransactionData.description.toLowerCase().includes('salário') || newTransactionData.description.toLowerCase().includes('renda') ? 'income' : 'expense',
-      amount: newTransactionData.amount
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-  };
-
-  const handleDeleteTransaction = (idToDelete: string) => {
-    setTransactions(prev => prev.filter((tx) => tx.id !== idToDelete));
-  };
-
-  const handleContributeToGoal = (goalId: string, amount: number) => {
-    const goal = goals.find(g => g.id === goalId);
-    if (!goal) return;
-
-    // Add to goal
-    setGoals(prevGoals =>
-      prevGoals.map(g =>
-        g.id === goalId ? { ...g, currentAmount: g.currentAmount + amount } : g
-      )
-    );
-
-    // Create new expense transaction
-    const newTransaction: Transaction = {
-      id: uuidv4(),
-      amount: amount,
-      description: `Contribuição para: ${goal.name}`,
-      category: 'Metas',
-      date: new Date().toISOString(),
-      type: 'expense'
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-  };
-  
   const filteredByTime = useMemo(() => {
+    if (!transactions) return [];
     const now = new Date();
     let startDate: Date;
     let endDate: Date = now;
@@ -154,7 +115,7 @@ export default function DashboardView({ transactions, setTransactions, goals, se
         </Select>
       </div>
 
-      {transactions.length === 0 && (
+      {(!transactions || transactions.length === 0) && (
          <Card>
             <CardHeader>
               <CardTitle>Bem-vindo ao FinanZen!</CardTitle>
@@ -192,7 +153,7 @@ export default function DashboardView({ transactions, setTransactions, goals, se
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AiTransactionForm onAddTransaction={handleAddTransaction} />
+            <AiTransactionForm onAddTransaction={addTransaction} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">
@@ -230,7 +191,7 @@ export default function DashboardView({ transactions, setTransactions, goals, se
         
         <RecentTransactions 
           transactions={filteredTransactions} 
-          onDelete={handleDeleteTransaction}
+          onDelete={deleteTransaction}
           selectedCategory={selectedCategory}
           onClearFilter={() => setSelectedCategory(null)}
         />

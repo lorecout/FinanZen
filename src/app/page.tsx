@@ -43,15 +43,9 @@ const ShoppingListView = dynamic(() => import('@/components/views/shopping-list-
 
 
 function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, transactions, goals, bills, shoppingItems, addTransaction, deleteTransaction, addGoal, deleteGoal, updateGoal, addBill, deleteBill, updateBill, addShoppingItem, deleteShoppingItem, updateShoppingItem } = useAuth();
   
   const [activeView, setActiveView] = useState('dashboard');
-
-  // States for all data, starting empty
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [bills, setBills] = useState<Bill[]>([]);
-  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
 
   const navItems = useMemo(() => getNavItems(), []);
 
@@ -61,22 +55,46 @@ function DashboardPage() {
     const initials = names.map(n => n[0]).join('');
     return initials.toUpperCase().slice(0, 2);
   }
+  
+  const handleContributeToGoal = (goalId: string, amount: number) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) return;
+
+    // Add to goal
+    const updatedGoal: Goal = {
+        ...goal,
+        currentAmount: goal.currentAmount + amount
+    }
+    updateGoal(updatedGoal);
+
+    // Create new expense transaction
+    const newTransaction: Omit<Transaction, 'id'> = {
+      amount: amount,
+      description: `Contribuição para: ${goal.name}`,
+      category: 'Metas',
+      date: new Date().toISOString(),
+      type: 'expense'
+    };
+    addTransaction(newTransaction);
+  };
+
 
   const renderActiveView = () => {
     switch (activeView) {
       case 'dashboard':
         return <DashboardView 
                 transactions={transactions} 
-                setTransactions={setTransactions} 
+                addTransaction={addTransaction}
+                deleteTransaction={deleteTransaction}
                 goals={goals} 
-                setGoals={setGoals}
+                handleContributeToGoal={handleContributeToGoal}
                />;
       case 'bills':
-        return <BillsView bills={bills} setBills={setBills} />;
+        return <BillsView bills={bills} addBill={addBill} deleteBill={deleteBill} updateBill={updateBill} />;
       case 'goals':
-        return <GoalsView goals={goals} setGoals={setGoals} />;
+        return <GoalsView goals={goals} addGoal={addGoal} deleteGoal={deleteGoal} updateGoal={updateGoal} />;
       case 'shopping':
-        return <ShoppingListView items={shoppingItems} setItems={setShoppingItems} />;
+        return <ShoppingListView items={shoppingItems} addItem={addShoppingItem} deleteItem={deleteShoppingItem} updateItem={updateShoppingItem} />;
       case 'settings':
          // This is a bit of a hack to avoid a full page reload for settings
         window.location.href = '/configuracoes';
@@ -84,9 +102,10 @@ function DashboardPage() {
       default:
         return <DashboardView 
                 transactions={transactions} 
-                setTransactions={setTransactions} 
+                addTransaction={addTransaction}
+                deleteTransaction={deleteTransaction}
                 goals={goals} 
-                setGoals={setGoals}
+                handleContributeToGoal={handleContributeToGoal}
                />;
     }
   }

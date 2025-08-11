@@ -72,7 +72,7 @@ export default function GoalsSummary({ goals, onContribute }: GoalsSummaryProps)
         <CardDescription>Acompanhe e contribua para suas metas diretamente do dashboard.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {goals.map(goal => {
+        {goals && goals.map(goal => {
             const progress = (goal.currentAmount / goal.targetAmount) * 100;
             return (
                  <div key={goal.id} className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -90,7 +90,7 @@ export default function GoalsSummary({ goals, onContribute }: GoalsSummaryProps)
                         onContribute={onContribute}
                         trigger={
                             <Button variant="outline" size="sm" className='w-full sm:w-auto'>
-                                <PiggyBank className="mr-2" />
+                                <PiggyBank className="mr-2 h-4 w-4" />
                                 Contribuir
                             </Button>
                         }
@@ -98,7 +98,7 @@ export default function GoalsSummary({ goals, onContribute }: GoalsSummaryProps)
                  </div>
             )
         })}
-        {goals.length === 0 && (
+        {(!goals || goals.length === 0) && (
             <p className="text-center text-muted-foreground py-4">Você ainda não tem nenhuma meta. Crie uma na aba "Metas".</p>
         )}
       </CardContent>

@@ -9,7 +9,6 @@ import {
   PlusCircle,
   Bell,
 } from "lucide-react"
-import { v4 as uuidv4 } from 'uuid';
 import { differenceInDays, isFuture, parseISO } from 'date-fns';
 
 import { Badge } from "@/components/ui/badge"
@@ -86,7 +85,7 @@ const getStatusText = (status: Bill['status']) => {
 }
 
 type BillDialogProps = {
-  onSave: (bill: Omit<Bill, 'id' | 'status'>) => void;
+  onSave: (bill: Omit<Bill, 'id'>) => void;
   trigger: React.ReactNode;
 }
 
@@ -98,11 +97,15 @@ function BillDialog({ onSave, trigger }: BillDialogProps) {
 
   const handleSave = () => {
     if(!name || !amount || !dueDate) return;
-    onSave({
-      name,
-      amount: Number(amount),
-      dueDate,
-    });
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const newBill: Omit<Bill, 'id'> = {
+        name,
+        amount: Number(amount),
+        dueDate,
+        status: new Date(dueDate) < today ? 'overdue' : 'due',
+    };
+    onSave(newBill);
     setName('');
     setAmount('');
     setDueDate('');
@@ -169,16 +172,20 @@ function BillDialog({ onSave, trigger }: BillDialogProps) {
 
 type BillsViewProps = {
     bills: Bill[];
-    setBills: React.Dispatch<React.SetStateAction<Bill[]>>;
+    addBill: (bill: Omit<Bill, 'id'>) => void;
+    deleteBill: (billId: string) => void;
+    updateBill: (bill: Bill) => void;
 }
 
-export default function BillsView({ bills, setBills }: BillsViewProps) {
+export default function BillsView({ bills, addBill, deleteBill, updateBill }: BillsViewProps) {
   const { toast } = useToast();
   const [notifiedBills, setNotifiedBills] = useState<string[]>([]);
   
   useEffect(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize today to the start of the day
+
+    if (!bills) return;
 
     bills.forEach(bill => {
         if (bill.status !== 'paid' && !notifiedBills.includes(bill.id)) {
@@ -203,22 +210,8 @@ export default function BillsView({ bills, setBills }: BillsViewProps) {
     });
   }, [bills, toast, notifiedBills]);
 
-
-  const handleAddBill = (newBillData: Omit<Bill, 'id' | 'status'>) => {
-    const newBill: Bill = {
-        id: uuidv4(),
-        ...newBillData,
-        status: new Date(newBillData.dueDate) < new Date() ? 'overdue' : 'due',
-    };
-    setBills(prev => [...prev, newBill].sort((a,b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()));
-  }
-
-  const handleMarkAsPaid = (id: string) => {
-      setBills(bills.map(bill => bill.id === id ? {...bill, status: 'paid'} : bill));
-  }
-
-  const handleDeleteBill = (id: string) => {
-    setBills(bills.filter(bill => bill.id !== id));
+  const handleMarkAsPaid = (bill: Bill) => {
+      updateBill({...bill, status: 'paid'});
   }
 
   return (
@@ -226,7 +219,7 @@ export default function BillsView({ bills, setBills }: BillsViewProps) {
       <div className="flex justify-between items-center mb-4 md:mb-6">
         <h1 className="text-lg font-semibold md:text-2xl font-headline">Contas a Pagar</h1>
         <BillDialog
-            onSave={handleAddBill}
+            onSave={addBill}
             trigger={
                 <Button>
                     <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Conta
@@ -251,7 +244,7 @@ export default function BillsView({ bills, setBills }: BillsViewProps) {
                       </TableRow>
                   </TableHeader>
                   <TableBody>
-                      {bills.length > 0 ? bills.map(bill => (
+                      {bills && bills.length > 0 ? bills.map(bill => (
                           <TableRow key={bill.id}>
                               <TableCell className='font-medium'>{bill.name}</TableCell>
                               <TableCell>
@@ -279,7 +272,7 @@ export default function BillsView({ bills, setBills }: BillsViewProps) {
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
                                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                          <DropdownMenuItem onSelect={() => handleMarkAsPaid(bill.id)} disabled={bill.status === 'paid'}>
+                                          <DropdownMenuItem onSelect={() => handleMarkAsPaid(bill)} disabled={bill.status === 'paid'}>
                                             <CheckCircle className='mr-2 h-4 w-4' /> Marcar como Paga
                                           </DropdownMenuItem>
                                           <DropdownMenuSeparator />
@@ -299,7 +292,7 @@ export default function BillsView({ bills, setBills }: BillsViewProps) {
                                               </AlertDialogHeader>
                                               <AlertDialogFooter>
                                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDeleteBill(bill.id)} className={cn(buttonVariants({variant: 'destructive'}))}>Excluir</AlertDialogAction>
+                                                <AlertDialogAction onClick={() => deleteBill(bill.id)} className={cn(buttonVariants({variant: 'destructive'}))}>Excluir</AlertDialogAction>
                                               </AlertDialogFooter>
                                             </AlertDialogContent>
                                           </AlertDialog>
