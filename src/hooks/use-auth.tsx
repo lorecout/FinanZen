@@ -1,9 +1,8 @@
 
 "use client"
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { 
-    getAuth,
     onAuthStateChanged,
     User,
     signInWithPopup,
@@ -12,7 +11,7 @@ import {
     signInWithEmailAndPassword,
     signOut,
 } from 'firebase/auth';
-import { getDatabase, ref, onValue, set, push, remove, update } from "firebase/database";
+import { getDatabase, ref, onValue, set, push, remove, update, off } from "firebase/database";
 import { auth, app } from '@/lib/firebase/client-app';
 import { useRouter } from 'next/navigation';
 import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
@@ -56,7 +55,6 @@ interface AuthContextType {
   signup: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   upgradeToPremium: () => void;
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   deleteTransaction: (transactionId: string) => void;
   addGoal: (goal: Omit<Goal, 'id'>) => void;
   deleteGoal: (goalId: string) => void;
@@ -67,6 +65,7 @@ interface AuthContextType {
   addShoppingItem: (item: Omit<ShoppingItem, 'id'>) => void;
   deleteShoppingItem: (itemId: string) => void;
   updateShoppingItem: (item: ShoppingItem) => void;
+  refreshData: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,44 +85,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Firebase Realtime Database
   const db = getDatabase(app);
+  
+  const fetchData = useCallback((userId: string) => {
+    const dataRef = ref(db, 'users/' + userId);
+    onValue(dataRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            setTransactions(data.transactions ? Object.values(data.transactions) : []);
+            setGoals(data.goals ? Object.values(data.goals) : []);
+            setBills(data.bills ? Object.values(data.bills) : []);
+            setShoppingItems(data.shoppingItems ? Object.values(data.shoppingItems) : []);
+            setIsPremium(data.isPremium || false);
+        } else {
+            // No data for user, reset states
+            setTransactions([]);
+            setGoals([]);
+            setBills([]);
+            setShoppingItems([]);
+            setIsPremium(false);
+        }
+    });
+    return dataRef;
+  }, [db]);
+
 
   useEffect(() => {
+    let dataRef: any;
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-       if (user) {
-        router.push('/');
-        // Listen for data changes
-        const dataRef = ref(db, 'users/' + user.uid);
-        onValue(dataRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                setTransactions(data.transactions ? Object.values(data.transactions) : []);
-                setGoals(data.goals ? Object.values(data.goals) : []);
-                setBills(data.bills ? Object.values(data.bills) : []);
-                setShoppingItems(data.shoppingItems ? Object.values(data.shoppingItems) : []);
-                setIsPremium(data.isPremium || false);
-            } else {
-                // No data for user, reset states
-                setTransactions([]);
-                setGoals([]);
-                setBills([]);
-                setShoppingItems([]);
-                setIsPremium(false);
-            }
-        });
-
+      if (user) {
+        setUser(user);
+        dataRef = fetchData(user.uid);
       } else {
-        // User logged out, reset all data
+        setUser(null);
+        if (dataRef) {
+          off(dataRef); // Detach listener
+        }
         setTransactions([]);
         setGoals([]);
         setBills([]);
         setShoppingItems([]);
         setIsPremium(false);
       }
+      setLoading(false);
     });
-    return () => unsubscribe();
-  }, [router, db]);
+
+    return () => {
+      unsubscribe();
+      if (dataRef) {
+        off(dataRef);
+      }
+    };
+  }, [router, db, fetchData]);
 
   const login = async (email: string, pass: string) => {
     try {
@@ -165,16 +177,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         set(userRef, true);
     }
   };
-
-  // --- Data Functions ---
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
+  
+  const refreshData = () => {
     if (user) {
-        const transactionsRef = ref(db, 'users/' + user.uid + '/transactions');
-        const newTransactionRef = push(transactionsRef);
-        set(newTransactionRef, { ...transaction, id: newTransactionRef.key });
+      fetchData(user.uid);
     }
   };
 
+  // --- Data Functions ---
   const deleteTransaction = (transactionId: string) => {
     if (user) {
         const transactionRef = ref(db, `users/${user.uid}/transactions/${transactionId}`);
@@ -263,7 +273,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         signup, 
         logout, 
         upgradeToPremium,
-        addTransaction,
         deleteTransaction,
         addGoal,
         deleteGoal,
@@ -273,7 +282,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateBill,
         addShoppingItem,
         deleteShoppingItem,
-        updateShoppingItem
+        updateShoppingItem,
+        refreshData
     }}>
       {children}
     </AuthContext.Provider>

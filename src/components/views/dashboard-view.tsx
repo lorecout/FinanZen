@@ -32,17 +32,16 @@ import ExternalApiCard from '../dashboard/external-api-card';
 
 type DashboardViewProps = {
     transactions: Transaction[];
-    addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
     deleteTransaction: (transactionId: string) => void;
     goals: Goal[];
     handleContributeToGoal: (goalId: string, amount: number) => void;
 }
 
 
-export default function DashboardView({ transactions, addTransaction, deleteTransaction, goals, handleContributeToGoal }: DashboardViewProps) {
+export default function DashboardView({ transactions, deleteTransaction, goals, handleContributeToGoal }: DashboardViewProps) {
   const [timePeriod, setTimePeriod] = useState('this-month');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const { isPremium } = useAuth();
+  const { isPremium, refreshData } = useAuth();
 
   const filteredByTime = useMemo(() => {
     if (!transactions) return [];
@@ -149,11 +148,11 @@ export default function DashboardView({ transactions, addTransaction, deleteTran
           <CardHeader>
             <CardTitle className="font-headline text-xl">Adicionar Transação</CardTitle>
             <CardDescription>
-              Use a IA para adicionar despesas ou receitas de forma rápida.
+              Use a IA para adicionar despesas ou receitas de forma rápida e segura.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AiTransactionForm onAddTransaction={addTransaction} />
+            <AiTransactionForm onAddTransaction={refreshData} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "../ui/card";
 import type { AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
 import type { Transaction } from "@/types";
+import { useAuth } from "@/hooks/use-auth";
 
 type AiTransactionFormProps = {
   onAddTransaction: (data: Omit<Transaction, 'id'>) => void;
@@ -19,50 +20,74 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
   const [lastTransaction, setLastTransaction] = useState<AnalyzeTransactionOutput | null>(null);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const { refreshData } = useAuth(); // Assuming useAuth provides a way to trigger data refresh
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!text.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Entrada Inválida",
+        description: "Por favor, descreva uma transação.",
+      });
+      return;
+    }
     setIsLoading(true);
     setLastTransaction(null);
 
     try {
-      const response = await fetch('/api/analyze-transaction', {
+      // 1. Analyze the text to get transaction details
+      const analyzeResponse = await fetch('/api/analyze-transaction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       });
 
-      const result = await response.json();
+      const analyzeResult = await analyzeResponse.json();
 
-      if (result.success && result.data) {
-        toast({
-          title: "Sucesso!",
-          description: result.message,
-        });
-        
-        const newTransaction: Omit<Transaction, 'id'> = {
-            ...result.data,
-            date: new Date().toISOString(),
-            type: result.data.description.toLowerCase().includes('salário') || result.data.description.toLowerCase().includes('renda') ? 'income' : 'expense',
-            amount: result.data.amount
-        };
-        onAddTransaction(newTransaction);
-        setLastTransaction(result.data);
-        formRef.current?.reset();
-        setText("");
-
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Erro!",
-          description: result.message,
-        });
+      if (!analyzeResult.success || !analyzeResult.data) {
+        throw new Error(analyzeResult.message || 'Falha ao analisar a transação.');
       }
-    } catch (error) {
+      
+      setLastTransaction(analyzeResult.data);
+      
+      const transactionData: Omit<Transaction, 'id'> = {
+        ...analyzeResult.data,
+        date: new Date().toISOString(),
+        type: analyzeResult.data.description.toLowerCase().includes('salário') || analyzeResult.data.description.toLowerCase().includes('renda') ? 'income' : 'expense',
+        amount: analyzeResult.data.amount
+      };
+
+      // 2. Add the transaction via the new secure endpoint
+      const addResponse = await fetch('/api/add-transaction', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(transactionData),
+      });
+
+      const addResult = await addResponse.json();
+
+      if (!addResponse.ok) {
+          throw new Error(addResult.message || 'Falha ao adicionar a transação.');
+      }
+
+      toast({
+        title: "Sucesso!",
+        description: "Sua transação foi adicionada com segurança.",
+      });
+
+      formRef.current?.reset();
+      setText("");
+      refreshData(); // Refresh data from the database
+
+    } catch (error: any) {
+      console.error("Transaction submission error:", error);
       toast({
         variant: "destructive",
         title: "Erro!",
-        description: "Ocorreu um erro ao se comunicar com o servidor.",
+        description: error.message || "Ocorreu um erro ao se comunicar com o servidor.",
       });
     } finally {
       setIsLoading(false);
@@ -84,7 +109,7 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
         <Sparkles className="absolute right-3 top-3 h-5 w-5 text-primary/70" />
       </div>
       <Button type="submit" disabled={isLoading} className="w-full" size="lg">
-        {isLoading ? "Analisando..." : "Adicionar Transação"}
+        {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Analisando...</> : "Adicionar Transação"}
         <Sparkles className="ml-2 h-4 w-4" />
       </Button>
       {lastTransaction && (

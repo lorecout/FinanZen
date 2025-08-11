@@ -43,7 +43,7 @@ const ShoppingListView = dynamic(() => import('@/components/views/shopping-list-
 
 
 function DashboardPage() {
-  const { user, logout, transactions, goals, bills, shoppingItems, addTransaction, deleteTransaction, addGoal, deleteGoal, updateGoal, addBill, deleteBill, updateBill, addShoppingItem, deleteShoppingItem, updateShoppingItem } = useAuth();
+  const { user, logout, transactions, goals, bills, shoppingItems, deleteTransaction, addGoal, deleteGoal, updateGoal, addBill, deleteBill, updateBill, addShoppingItem, deleteShoppingItem, updateShoppingItem } = useAuth();
   
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -56,7 +56,7 @@ function DashboardPage() {
     return initials.toUpperCase().slice(0, 2);
   }
   
-  const handleContributeToGoal = (goalId: string, amount: number) => {
+  const handleContributeToGoal = async (goalId: string, amount: number) => {
     const goal = goals.find(g => g.id === goalId);
     if (!goal) return;
 
@@ -75,7 +75,26 @@ function DashboardPage() {
       date: new Date().toISOString(),
       type: 'expense'
     };
-    addTransaction(newTransaction);
+
+    // Use the secure endpoint to add the contribution transaction
+    try {
+        const response = await fetch('/api/add-transaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newTransaction),
+        });
+
+        if (!response.ok) {
+            // Revert goal update if transaction fails
+            updateGoal(goal);
+            throw new Error('Falha ao registrar a contribuição como uma transação.');
+        }
+    } catch(error) {
+        console.error(error);
+        // Handle error, maybe show a toast
+    }
   };
 
 
@@ -84,7 +103,6 @@ function DashboardPage() {
       case 'dashboard':
         return <DashboardView 
                 transactions={transactions} 
-                addTransaction={addTransaction}
                 deleteTransaction={deleteTransaction}
                 goals={goals} 
                 handleContributeToGoal={handleContributeToGoal}
@@ -102,7 +120,6 @@ function DashboardPage() {
       default:
         return <DashboardView 
                 transactions={transactions} 
-                addTransaction={addTransaction}
                 deleteTransaction={deleteTransaction}
                 goals={goals} 
                 handleContributeToGoal={handleContributeToGoal}
