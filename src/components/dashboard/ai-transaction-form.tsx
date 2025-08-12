@@ -43,6 +43,10 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
         body: JSON.stringify({ text }),
       });
 
+      if (!analyzeResponse.ok) {
+        throw new Error('Falha ao analisar a transação.');
+      }
+      
       const analyzeResult = await analyzeResponse.json();
 
       if (!analyzeResult.success || !analyzeResult.data) {
