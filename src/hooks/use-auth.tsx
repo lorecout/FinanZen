@@ -10,6 +10,7 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
+    getIdToken,
 } from 'firebase/auth';
 import { getDatabase, ref, onValue, set, push, remove, update, off } from "firebase/database";
 import { auth, app } from '@/lib/firebase/client-app';
@@ -135,7 +136,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         off(dataRef);
       }
     };
-  }, [router, db, fetchData]);
+  }, [fetchData]);
 
   const login = async (email: string, pass: string) => {
     try {
@@ -180,6 +181,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const refreshData = () => {
     if (user) {
+      const dataRef = fetchData(user.uid);
+      off(dataRef);
       fetchData(user.uid);
     }
   };
@@ -297,3 +300,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, FormEvent } from "react";
@@ -6,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "../ui/card";
-import type { AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
+import { analyzeTransaction, type AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
 import type { Transaction } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
+import { getAuth, getIdToken } from "firebase/auth";
 
 type AiTransactionFormProps = {
   onAddTransaction: (data: Omit<Transaction, 'id'>) => void;
@@ -37,36 +39,31 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
 
     try {
       // 1. Analyze the text to get transaction details
-      const analyzeResponse = await fetch('/api/analyze-transaction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-
-      if (!analyzeResponse.ok) {
-        throw new Error('Falha ao analisar a transação.');
-      }
+      const analyzeResult = await analyzeTransaction({ text });
       
-      const analyzeResult = await analyzeResponse.json();
-
-      if (!analyzeResult.success || !analyzeResult.data) {
-        throw new Error(analyzeResult.message || 'Falha ao analisar a transação.');
-      }
-      
-      setLastTransaction(analyzeResult.data);
+      setLastTransaction(analyzeResult);
       
       const transactionData: Omit<Transaction, 'id'> = {
-        ...analyzeResult.data,
+        ...analyzeResult,
         date: new Date().toISOString(),
-        type: analyzeResult.data.description.toLowerCase().includes('salário') || analyzeResult.data.description.toLowerCase().includes('renda') ? 'income' : 'expense',
-        amount: analyzeResult.data.amount
+        type: analyzeResult.description.toLowerCase().includes('salário') || analyzeResult.description.toLowerCase().includes('renda') ? 'income' : 'expense',
+        amount: analyzeResult.amount
       };
+
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("Usuário não autenticado.");
+      }
+      const token = await getIdToken(user);
+
 
       // 2. Add the transaction via the new secure endpoint
       const addResponse = await fetch('/api/add-transaction', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(transactionData),
       });
@@ -136,3 +133,5 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
     </form>
   );
 }
+
+    
