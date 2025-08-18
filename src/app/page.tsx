@@ -26,6 +26,7 @@ import AuthGuard from '@/components/auth-guard';
 import { useAuth } from '@/hooks/use-auth';
 import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import RecentTransactions from '@/components/dashboard/recent-transactions';
 
 // Dynamic imports for view components
 const DashboardView = dynamic(() => import('@/components/views/dashboard-view'), {
@@ -107,12 +108,13 @@ function DashboardPage() {
                 goals={goals} 
                 handleContributeToGoal={handleContributeToGoal}
                />;
-      case 'bills':
-        return <BillsView bills={bills} addBill={addBill} deleteBill={deleteBill} updateBill={updateBill} />;
-      case 'goals':
-        return <GoalsView goals={goals} addGoal={addGoal} deleteGoal={deleteGoal} updateGoal={updateGoal} />;
-      case 'shopping':
-        return <ShoppingListView items={shoppingItems} addItem={addShoppingItem} deleteItem={deleteShoppingItem} updateItem={updateShoppingItem} />;
+      case 'bills': // This is now the "Transações" view
+        return <RecentTransactions transactions={transactions} onDelete={deleteTransaction} selectedCategory={null} onClearFilter={() => {}} />;
+      case 'goals': // This is now the "Planejamento" view, which can combine goals and bills
+        return <>
+            <GoalsView goals={goals} addGoal={addGoal} deleteGoal={deleteGoal} updateGoal={updateGoal} />
+            <BillsView bills={bills} addBill={addBill} deleteBill={deleteBill} updateBill={updateBill} />
+        </>;
       case 'settings':
          // This is a bit of a hack to avoid a full page reload for settings
         window.location.href = '/configuracoes';

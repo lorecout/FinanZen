@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Tooltip, Cell, ResponsiveContainer } from "recharts"
+import { Pie, PieChart, Tooltip, Cell, ResponsiveContainer, Legend } from "recharts"
 import { type Transaction } from "@/types"
 
 import {
@@ -40,29 +40,30 @@ export default function ExpenseChart({ transactions, onCategorySelect, selectedC
         return acc;
       }, {} as Record<string, number>);
 
-    const chartData = Object.entries(expenseData).map(([category, expenses]) => ({
+    const sortedChartData = Object.entries(expenseData).map(([category, expenses]) => ({
       category,
       expenses,
-    }));
+      label: `R$ ${expenses.toFixed(2).replace('.', ',')}`
+    })).sort((a,b) => b.expenses - a.expenses);
 
     const chartConfig: ChartConfig = {
       expenses: {
-        label: "Despesas (R$)",
+        label: "Despesas",
       },
     };
-    chartData.forEach((item, index) => {
+    sortedChartData.forEach((item, index) => {
       chartConfig[item.category] = {
         label: item.category,
         color: chartColors[index % chartColors.length],
       };
     });
 
-    return { chartData, chartConfig };
+    return { chartData: sortedChartData, chartConfig };
   }, [transactions]);
 
 
   if (chartData.length === 0) {
-    return <CardDescription className="text-center h-full flex items-center justify-center">Não há dados de despesa para exibir.</CardDescription>
+    return <CardDescription className="text-center h-full flex items-center justify-center py-8">Não há dados de despesa para exibir.</CardDescription>
   }
 
   const handlePieClick = (data: any) => {
@@ -72,7 +73,7 @@ export default function ExpenseChart({ transactions, onCategorySelect, selectedC
   return (
     <ChartContainer
       config={chartConfig}
-      className="mx-auto aspect-square max-h-[250px]"
+      className="mx-auto aspect-square max-h-[350px]"
     >
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
@@ -102,9 +103,16 @@ export default function ExpenseChart({ transactions, onCategorySelect, selectedC
                />
             ))}
           </Pie>
-           <ChartLegend
-            content={<ChartLegendContent nameKey="category" />}
-            className="-translate-y-[2px] flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+           <Legend
+            content={
+              <ChartLegendContent 
+                className="flex-col items-start"
+                nameKey="category"
+              />
+            }
+            verticalAlign="middle"
+            align="right"
+            layout="vertical"
           />
         </PieChart>
       </ResponsiveContainer>

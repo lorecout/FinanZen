@@ -216,23 +216,24 @@ export default function BillsView({ bills, addBill, deleteBill, updateBill }: Bi
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4 md:mb-6">
-        <h1 className="text-lg font-semibold md:text-2xl font-headline">Contas a Pagar</h1>
-        <BillDialog
-            onSave={addBill}
-            trigger={
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Conta
-                </Button>
-            }
-        />
-      </div>
       <Card>
           <CardHeader>
-              <CardTitle>Gerencie suas Contas</CardTitle>
-              <CardDescription>Acompanhe e pague suas contas em um só lugar.</CardDescription>
+             <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle>Contas a Pagar</CardTitle>
+                    <CardDescription>Acompanhe e pague suas contas em um só lugar.</CardDescription>
+                </div>
+                 <BillDialog
+                    onSave={addBill}
+                    trigger={
+                        <Button variant="outline">
+                            <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Conta
+                        </Button>
+                    }
+                />
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className='p-0'>
               <Table>
                   <TableHeader>
                       <TableRow>

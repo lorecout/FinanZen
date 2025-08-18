@@ -12,10 +12,11 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Trash2 } from "lucide-react"
+import { Trash2, MoreVertical, Edit } from "lucide-react"
 import { type Transaction } from "@/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
@@ -28,12 +29,25 @@ type RecentTransactionsProps = {
 export default function RecentTransactions({ transactions, onDelete, selectedCategory, onClearFilter }: RecentTransactionsProps) {
   const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  const groupTransactionsByDate = (transactions: Transaction[]) => {
+    return transactions.reduce((acc, tx) => {
+        const date = new Date(tx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' });
+        if (!acc[date]) {
+            acc[date] = [];
+        }
+        acc[date].push(tx);
+        return acc;
+    }, {} as Record<string, Transaction[]>);
+  };
+  
+  const groupedTransactions = groupTransactionsByDate(sortedTransactions);
+
   return (
       <Card>
             <CardHeader>
                 <div className="flex items-center justify-between">
                     <div>
-                        <CardTitle className="font-headline text-xl">Transações Recentes</CardTitle>
+                        <CardTitle className="font-headline text-xl">Transações</CardTitle>
                         <CardDescription>
                             {selectedCategory ? `Exibindo despesas da categoria "${selectedCategory}"` : "Suas atividades financeiras mais recentes."}
                         </CardDescription>
@@ -45,52 +59,72 @@ export default function RecentTransactions({ transactions, onDelete, selectedCat
                     )}
                 </div>
             </CardHeader>
-            <CardContent>
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Descrição</TableHead>
-                            <TableHead className="text-right">Valor</TableHead>
-                            <TableHead className="text-right w-[80px]">Ações</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {sortedTransactions.length > 0 ? sortedTransactions.map((tx) => (
-                            <TableRow key={tx.id}>
-                            <TableCell>
-                                <div className="font-medium">{tx.description}</div>
-                                <div className="text-sm text-muted-foreground">
-                                {new Date(tx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })}
-                                </div>
-                            </TableCell>
-                            <TableCell className={cn(
-                                "text-right font-medium",
-                                tx.type === 'income' ? 'text-emerald-600' : 'text-destructive'
-                            )}>
-                                <div className="whitespace-nowrap">
-                                {tx.type === 'income' ? '+' : '-'} R$ {Math.abs(tx.amount).toFixed(2).replace('.', ',')}
-                                </div>
-                                <div>
-                                <Badge variant="outline" className="mt-1">{tx.category}</Badge>
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <Button variant="ghost" size="icon" onClick={() => onDelete(tx.id)}>
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Excluir</span>
-                                </Button>
-                            </TableCell>
-                            </TableRow>
-                        )) : (
-                            <TableRow>
-                            <TableCell colSpan={3} className="h-24 text-center">
-                                Nenhuma transação encontrada.
-                            </TableCell>
-                        </TableRow>
-                        )}
-                        </TableBody>
-                    </Table>
+            <CardContent className="p-0">
+                <div className="space-y-4">
+                    {Object.keys(groupedTransactions).length > 0 ? Object.entries(groupedTransactions).map(([date, txs]) => (
+                        <div key={date}>
+                            <h3 className="text-sm font-semibold text-muted-foreground px-4 py-2 bg-muted/50">{date}</h3>
+                            <ul className="divide-y">
+                                {txs.map(tx => (
+                                    <li key={tx.id} className="flex items-center justify-between p-4 hover:bg-muted/50">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-2 bg-primary/10 rounded-full">
+                                                {/* Placeholder for category icon */}
+                                                <span className="text-primary font-bold text-lg">{tx.category.charAt(0)}</span>
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold">{tx.description}</p>
+                                                <p className="text-sm text-muted-foreground">{tx.category}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className={cn(
+                                                "font-bold",
+                                                tx.type === 'income' ? 'text-green-600' : 'text-destructive'
+                                            )}>
+                                                 {tx.type === 'income' ? '+' : '-'} R$ {Math.abs(tx.amount).toFixed(2).replace('.', ',')}
+                                            </span>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent>
+                                                    <DropdownMenuItem>
+                                                        <Edit className="mr-2 h-4 w-4" /> Editar
+                                                    </DropdownMenuItem>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={e => e.preventDefault()}>
+                                                                <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                                            </DropdownMenuItem>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Esta ação não pode ser desfeita e irá excluir permanentemente a transação.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => onDelete(tx.id)} className={cn(buttonVariants({variant: 'destructive'}))}>Excluir</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )) : (
+                         <div className="h-24 text-center flex items-center justify-center">
+                            <p>Nenhuma transação encontrada.</p>
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
