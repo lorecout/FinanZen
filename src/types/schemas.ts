@@ -24,7 +24,9 @@ export const GenerateFinancialInsightsInputSchema = z.object({
   transactions: z.array(TransactionSchema.omit({ id: true })).describe("A lista de transações do usuário (receitas e despesas)."),
 });
 
-export const GenerateFinancialInsightsOutputSchema = z.string().describe("Um resumo conciso e amigável (em markdown) com insights e dicas sobre as finanças do usuário.");
+export const GenerateFinancialInsightsOutputSchema = z.object({
+  summary: z.string().describe("Um resumo conciso e amigável (em markdown) com insights e dicas sobre as finanças do usuário."),
+});
 
 export const ShoppingItemSchema = z.object({
     id: z.string(),

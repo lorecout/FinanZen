@@ -49,10 +49,13 @@ const generateFinancialInsightsFlow = ai.defineFlow(
   },
   async input => {
     if (input.transactions.length === 0) {
-      return "Não há transações suficientes para gerar insights. Adicione mais algumas e tente novamente!";
+      return {
+        summary: "Não há transações suficientes para gerar insights. Adicione mais algumas e tente novamente!"
+      };
     }
     
     const {output} = await prompt(input);
     return output!;
   }
 );
+

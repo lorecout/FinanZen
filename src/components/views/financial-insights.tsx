@@ -47,7 +47,7 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
         try {
             const result = await handleFinancialInsights({ transactions });
             if (result.success && result.data) {
-                setInsights(result.data);
+                setInsights(result.data.summary);
             } else {
                  setInsights(result.message); // Display error or info message from backend
                 toast({

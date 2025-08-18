@@ -1,7 +1,7 @@
 "use server";
 
 import { analyzeTransaction, type AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
-import { generateFinancialInsights, type GenerateFinancialInsightsInput } from "@/ai/flows/financial-insights-flow";
+import { generateFinancialInsights, type GenerateFinancialInsightsInput, type GenerateFinancialInsightsOutput } from "@/ai/flows/financial-insights-flow";
 import { analyzeShoppingList, type AnalyzeShoppingListInput } from "@/ai/flows/shopping-list-analyzer";
 import { z } from "zod";
 
@@ -52,7 +52,7 @@ export async function handleTransactionAnalysis(
 type InsightState = {
   success: boolean;
   message: string;
-  data?: string;
+  data?: GenerateFinancialInsightsOutput;
 }
 
 export async function handleFinancialInsights(
