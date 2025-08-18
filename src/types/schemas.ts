@@ -9,6 +9,13 @@ export const TransactionSchema = z.object({
     type: z.enum(['income', 'expense']),
 });
 
+export const BudgetSchema = z.object({
+    id: z.string(),
+    category: z.string(),
+    amount: z.number(),
+    month: z.string().regex(/^\d{4}-\d{2}$/, "O mês deve estar no formato YYYY-MM"),
+});
+
 export const AnalyzeTransactionOutputSchema = z.object({
   amount: z.number().describe('The amount of the transaction, always as a positive number.'),
   description: z.string().describe('A description of the transaction.'),

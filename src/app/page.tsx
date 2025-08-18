@@ -24,7 +24,7 @@ import { getNavItems } from '@/components/dashboard/mobile-nav';
 import MobileNav from '@/components/dashboard/mobile-nav';
 import AuthGuard from '@/components/auth-guard';
 import { useAuth } from '@/hooks/use-auth';
-import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
+import { type Transaction, type Goal, type Bill, type ShoppingItem, type Budget } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import { useToast } from '@/hooks/use-toast';
@@ -42,10 +42,20 @@ const GoalsView = dynamic(() => import('@/components/views/goals-view'), {
 const ShoppingListView = dynamic(() => import('@/components/views/shopping-list-view'), {
   loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>,
 });
+const BudgetsView = dynamic(() => import('@/components/views/budgets-view'), {
+  loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>,
+});
 
 
 function DashboardPage() {
-  const { user, logout, transactions, goals, bills, shoppingItems, deleteTransaction, addGoal, deleteGoal, updateGoal, addBill, deleteBill, updateBill, addShoppingItem, deleteShoppingItem, updateShoppingItem, updateTransaction } = useAuth();
+  const { 
+    user, logout, 
+    transactions, deleteTransaction, updateTransaction,
+    goals, addGoal, deleteGoal, updateGoal, 
+    bills, addBill, deleteBill, updateBill, 
+    shoppingItems, addShoppingItem, deleteShoppingItem, updateShoppingItem,
+    budgets, addBudget, deleteBudget, updateBudget
+  } = useAuth();
   const { toast } = useToast();
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -135,8 +145,16 @@ function DashboardPage() {
                 goals={goals} 
                 handleContributeToGoal={handleContributeToGoal}
                />;
-      case 'planning': // This is now the "Planejamento" view, which can combine goals and bills
+      case 'planning':
         return <>
+            <BudgetsView 
+              budgets={budgets} 
+              addBudget={addBudget}
+              deleteBudget={deleteBudget}
+              updateBudget={updateBudget}
+              transactions={transactions}
+            />
+            <div className='mt-6' />
             <BillsView bills={bills} addBill={addBill} deleteBill={deleteBill} updateBill={updateBill} />
             <div className='mt-6' />
             <GoalsView goals={goals} addGoal={addGoal} deleteGoal={deleteGoal} updateGoal={updateGoal} handleContribute={handleContributeToGoal} />

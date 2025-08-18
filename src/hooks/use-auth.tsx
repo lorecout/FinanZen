@@ -15,7 +15,7 @@ import {
 import { getDatabase, ref, onValue, set, push, remove, update, off, get, child, Unsubscribe } from "firebase/database";
 import { auth, app } from '@/lib/firebase/client-app';
 import { useRouter } from 'next/navigation';
-import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
+import { type Transaction, type Goal, type Bill, type ShoppingItem, type Budget } from '@/types';
 import { useToast } from './use-toast';
 import { subDays } from 'date-fns';
 
@@ -53,6 +53,7 @@ interface AuthContextType {
   goals: Goal[];
   bills: Bill[];
   shoppingItems: ShoppingItem[];
+  budgets: Budget[];
   login: (email: string, pass: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   signup: (email: string, pass: string) => Promise<void>;
@@ -69,6 +70,9 @@ interface AuthContextType {
   addShoppingItem: (item: Omit<ShoppingItem, 'id'>) => void;
   deleteShoppingItem: (itemId: string) => void;
   updateShoppingItem: (item: ShoppingItem) => void;
+  addBudget: (budget: Omit<Budget, 'id'>) => void;
+  updateBudget: (budget: Budget) => void;
+  deleteBudget: (budgetId: string) => void;
   refreshData: () => void;
   editCategory: (oldName: string, newName: string) => void;
   deleteCategory: (categoryName: string) => void;
@@ -89,6 +93,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [goals, setGoals] = useState<Goal[]>([]);
   const [bills, setBills] = useState<Bill[]>([]);
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
 
 
   // Firebase Realtime Database
@@ -103,6 +108,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setGoals(data.goals ? Object.values(data.goals) : []);
             setBills(data.bills ? Object.values(data.bills) : []);
             setShoppingItems(data.shoppingItems ? Object.values(data.shoppingItems) : []);
+            setBudgets(data.budgets ? Object.values(data.budgets) : []);
             setIsPremium(data.isPremium || false);
         } else {
             // No data for user, reset states
@@ -110,6 +116,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setGoals([]);
             setBills([]);
             setShoppingItems([]);
+            setBudgets([]);
             setIsPremium(false);
         }
     }, (error) => {
@@ -124,6 +131,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setGoals([]);
         setBills([]);
         setShoppingItems([]);
+        setBudgets([]);
         setIsPremium(false);
     });
   }, [db, toast]);
@@ -144,6 +152,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setGoals([]);
         setBills([]);
         setShoppingItems([]);
+        setBudgets([]);
         setIsPremium(false);
       }
       setLoading(false);
@@ -208,6 +217,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setGoals(data.goals ? Object.values(data.goals) : []);
             setBills(data.bills ? Object.values(data.bills) : []);
             setShoppingItems(data.shoppingItems ? Object.values(data.shoppingItems) : []);
+            setBudgets(data.budgets ? Object.values(data.budgets) : []);
             setIsPremium(data.isPremium || false);
         }
       }).catch((error) => {
@@ -302,6 +312,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
   
+  const addBudget = (budget: Omit<Budget, 'id'>) => {
+    if (user) {
+      const budgetsRef = ref(db, `users/${user.uid}/budgets`);
+      const newBudgetRef = push(budgetsRef);
+      set(newBudgetRef, { ...budget, id: newBudgetRef.key });
+    }
+  };
+
+  const updateBudget = (budget: Budget) => {
+    if (user) {
+      const budgetRef = ref(db, `users/${user.uid}/budgets/${budget.id}`);
+      update(budgetRef, budget);
+    }
+  };
+  
+  const deleteBudget = (budgetId: string) => {
+    if (user) {
+      const budgetRef = ref(db, `users/${user.uid}/budgets/${budgetId}`);
+      remove(budgetRef);
+    }
+  };
+
   // --- Category Management Functions ---
   const editCategory = async (oldName: string, newName: string) => {
     if (!user) return;
@@ -358,6 +390,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         goals,
         bills,
         shoppingItems,
+        budgets,
         login, 
         loginWithGoogle, 
         signup, 
@@ -374,6 +407,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addShoppingItem,
         deleteShoppingItem,
         updateShoppingItem,
+        addBudget,
+        updateBudget,
+        deleteBudget,
         refreshData,
         editCategory,
         deleteCategory,
@@ -391,5 +427,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-    

@@ -33,3 +33,10 @@ export type ShoppingItem = {
   name: string;
   checked: boolean;
 };
+
+export type Budget = {
+  id: string;
+  category: string;
+  amount: number;
+  month: string; // Format: "YYYY-MM"
+};
