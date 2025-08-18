@@ -120,15 +120,15 @@ export default function DashboardView({ transactions, deleteTransaction, updateT
 
       <Card className="shadow-lg">
           <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">Saldo em contas</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Balanço do Período</CardTitle>
               <CardDescription className='text-3xl font-bold text-foreground'>
-                  R$ {summary.balance.toFixed(2).replace('.', ',')}
+                 Saldo Atual: R$ {summary.balance.toFixed(2).replace('.', ',')}
               </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                   <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                    <ArrowUpCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
+                    <Landmark className="h-5 w-5 text-green-500 dark:text-green-400" />
                   </div>
                   <div>
                       <p className='text-sm text-muted-foreground'>Receitas</p>
@@ -137,7 +137,7 @@ export default function DashboardView({ transactions, deleteTransaction, updateT
               </div>
               <div className="flex items-center gap-2">
                    <div className="p-2 bg-red-100 dark:bg-red-900 rounded-full">
-                    <ArrowDownCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                    <CreditCard className="h-5 w-5 text-red-500 dark:text-red-400" />
                   </div>
                   <div>
                       <p className='text-sm text-muted-foreground'>Despesas</p>
