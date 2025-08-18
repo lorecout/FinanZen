@@ -72,7 +72,6 @@ interface AuthContextType {
   refreshData: () => void;
   editCategory: (oldName: string, newName: string) => void;
   deleteCategory: (categoryName: string) => void;
-  addDummyTransactions: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -338,30 +337,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
       }
   };
-  
-  const addDummyTransactions = async () => {
-    if (!user) return;
-    
-    const now = new Date();
-    const dummyData: Omit<Transaction, 'id'>[] = [
-      { amount: 5000, description: 'Salário', category: 'Renda', date: subDays(now, 15).toISOString(), type: 'income' },
-      { amount: 1500, description: 'Aluguel', category: 'Moradia', date: subDays(now, 14).toISOString(), type: 'expense' },
-      { amount: 450, description: 'Compras de Supermercado', category: 'Alimentação', date: subDays(now, 12).toISOString(), type: 'expense' },
-      { amount: 120, description: 'Jantar com amigos', category: 'Lazer', date: subDays(now, 10).toISOString(), type: 'expense' },
-      { amount: 80, description: 'Conta de Internet', category: 'Contas', date: subDays(now, 8).toISOString(), type: 'expense' },
-      { amount: 55.90, description: 'Assinatura Netflix', category: 'Lazer', date: subDays(now, 7).toISOString(), type: 'expense' },
-      { amount: 75, description: 'Transporte (Uber/Ônibus)', category: 'Transporte', date: subDays(now, 5).toISOString(), type: 'expense' },
-      { amount: 250, description: 'Roupas', category: 'Compras', date: subDays(now, 3).toISOString(), type: 'expense' },
-    ];
-    
-    const transactionsRef = ref(db, `users/${user.uid}/transactions`);
-    for (const tx of dummyData) {
-      const newTxRef = push(transactionsRef);
-      await set(newTxRef, { ...tx, id: newTxRef.key });
-    }
-    
-    refreshData();
-  }
 
 
   return (
@@ -392,7 +367,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         refreshData,
         editCategory,
         deleteCategory,
-        addDummyTransactions
     }}>
       {children}
     </AuthContext.Provider>

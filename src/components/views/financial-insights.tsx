@@ -4,12 +4,11 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Lightbulb, Loader2, Zap } from 'lucide-react';
+import { Lightbulb, Loader2 } from 'lucide-react';
 import { handleFinancialInsights } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { type Transaction } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
-import Link from 'next/link';
 
 type FinancialInsightsProps = {
     transactions: Transaction[];
@@ -37,7 +36,6 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
     const [isLoading, setIsLoading] = useState(false);
     const [insights, setInsights] = useState<string | null>(null);
     const { toast } = useToast();
-    const { addDummyTransactions } = useAuth();
     
     const hasTransactions = transactions && transactions.length > 0;
 
@@ -66,18 +64,10 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
             setIsLoading(false);
         }
     };
-    
-    const handleGenerateDummies = () => {
-        addDummyTransactions();
-        toast({
-            title: "Dados de Teste Gerados!",
-            description: "Transações fictícias foram adicionadas à sua conta.",
-        });
-    }
 
 
     return (
-        <Card className="bg-primary/5 border-primary/20">
+        <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-headline text-xl">
                     <Lightbulb className="text-primary" />
@@ -101,9 +91,6 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
 
                 <Button onClick={getInsights} disabled={isLoading || !hasTransactions} className="w-full">
                     {isLoading ? 'Analisando suas finanças...' : 'Gerar Novos Insights'}
-                </Button>
-                 <Button onClick={handleGenerateDummies} variant="outline" className="w-full">
-                    Gerar Dados de Teste
                 </Button>
                 </>
             </CardContent>
