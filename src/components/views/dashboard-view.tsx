@@ -36,12 +36,13 @@ import AdCard from '../dashboard/ad-card';
 type DashboardViewProps = {
     transactions: Transaction[];
     deleteTransaction: (transactionId: string) => void;
+    updateTransaction: (transaction: Transaction) => void;
     goals: Goal[];
     handleContributeToGoal: (goalId: string, amount: number) => void;
 }
 
 
-export default function DashboardView({ transactions, deleteTransaction, goals, handleContributeToGoal }: DashboardViewProps) {
+export default function DashboardView({ transactions, deleteTransaction, updateTransaction, goals, handleContributeToGoal }: DashboardViewProps) {
   const [timePeriod, setTimePeriod] = useState('this-month');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { isPremium, refreshData, addBill } = useAuth();
@@ -145,6 +146,8 @@ export default function DashboardView({ transactions, deleteTransaction, goals, 
               </div>
           </CardContent>
       </Card>
+      
+      <FinancialInsights transactions={transactions} />
 
       <div id="add-transaction-form" className="grid gap-4 md:gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-5">
@@ -170,9 +173,12 @@ export default function DashboardView({ transactions, deleteTransaction, goals, 
         <RecentTransactions 
           transactions={filteredTransactions} 
           onDelete={deleteTransaction}
+          onUpdate={updateTransaction}
           selectedCategory={selectedCategory}
           onClearFilter={() => setSelectedCategory(null)}
         />
+        
+        <GoalsSummary goals={goals} onContribute={handleContributeToGoal} />
 
         <div className="hidden">
            {/* AI Form is hidden for now to match the new design, but kept in the DOM for functionality */}

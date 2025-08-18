@@ -57,6 +57,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   upgradeToPremium: () => void;
   deleteTransaction: (transactionId: string) => void;
+  updateTransaction: (transaction: Transaction) => void;
   addGoal: (goal: Omit<Goal, 'id'>) => void;
   deleteGoal: (goalId: string) => void;
   updateGoal: (goal: Goal) => void;
@@ -195,6 +196,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
   
+  const updateTransaction = (transaction: Transaction) => {
+    if (user) {
+      const transactionRef = ref(db, `users/${user.uid}/transactions/${transaction.id}`);
+      update(transactionRef, transaction);
+    }
+  };
+
   const addGoal = (goal: Omit<Goal, 'id'>) => {
       if (user) {
           const goalsRef = ref(db, 'users/' + user.uid + '/goals');
@@ -277,6 +285,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout, 
         upgradeToPremium,
         deleteTransaction,
+        updateTransaction,
         addGoal,
         deleteGoal,
         updateGoal,
@@ -300,6 +309,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-    
-    

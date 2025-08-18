@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -8,7 +9,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { TransactionSchema } from '@/types/schemas';
 import { GenerateFinancialInsightsInputSchema, GenerateFinancialInsightsOutputSchema } from '@/types/schemas';
 
 export type GenerateFinancialInsightsInput = z.infer<typeof GenerateFinancialInsightsInputSchema>;

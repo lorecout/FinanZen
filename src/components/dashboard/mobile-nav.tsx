@@ -29,10 +29,10 @@ export type NavItem = {
 
 export const getNavItems = (): NavItem[] => [
   { id: "dashboard", href: "/", icon: LayoutGrid, label: "Principal" },
-  { id: "bills", href: "/#", icon: Wallet, label: "Contas" }, 
+  { id: "planning", href: "/#", icon: Target, label: "Planejamento" }, 
   { id: "add", href: "/#add-transaction", icon: Plus, label: "Adicionar" },
-  { id: "goals", href: "/#", icon: Target, label: "Planejamento" }, 
-  { id: "settings", href: "/configuracoes", icon: BookUser, label: "Mais" }, 
+  { id: "shopping-list", href: "/#", icon: ShoppingCart, label: "Compras" }, 
+  { id: "settings", href: "/configuracoes", icon: Settings, label: "Ajustes" }, 
 ]
 
 type MobileNavProps = {

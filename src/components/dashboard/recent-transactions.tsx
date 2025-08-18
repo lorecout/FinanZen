@@ -1,6 +1,7 @@
 
 "use client"
 
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -10,23 +11,116 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Trash2, MoreVertical, Edit } from "lucide-react"
 import { type Transaction } from "@/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+
+type EditTransactionDialogProps = {
+  transaction: Transaction;
+  onSave: (transaction: Transaction) => void;
+  trigger: React.ReactNode;
+}
+
+function EditTransactionDialog({ transaction, onSave, trigger }: EditTransactionDialogProps) {
+  const [description, setDescription] = useState(transaction.description);
+  const [amount, setAmount] = useState(transaction.amount.toString());
+  const [category, setCategory] = useState(transaction.category);
+  const [open, setOpen] = useState(false);
+
+  const handleSave = () => {
+    if(!description || !amount || !category) return;
+    
+    const updatedTransaction: Transaction = {
+        ...transaction,
+        description,
+        amount: Number(amount),
+        category,
+    };
+    onSave(updatedTransaction);
+    setOpen(false);
+  };
+  
+  React.useEffect(() => {
+    if(open) {
+      setDescription(transaction.description);
+      setAmount(transaction.amount.toString());
+      setCategory(transaction.category);
+    }
+  }, [open, transaction]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Editar Transação</DialogTitle>
+          <DialogDescription>
+            Faça alterações na sua transação.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="description" className="text-right">
+              Descrição
+            </Label>
+            <Input
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="amount" className="text-right">
+              Valor (R$)
+            </Label>
+            <Input
+              id="amount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="category" className="text-right">
+              Categoria
+            </Label>
+            {/* This could be a select with predefined categories */}
+            <Input
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="submit" onClick={handleSave}>Salvar Alterações</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
   onDelete: (id: string) => void;
+  onUpdate: (transaction: Transaction) => void;
   selectedCategory: string | null;
   onClearFilter: () => void;
 };
 
 
-export default function RecentTransactions({ transactions, onDelete, selectedCategory, onClearFilter }: RecentTransactionsProps) {
+export default function RecentTransactions({ transactions, onDelete, onUpdate, selectedCategory, onClearFilter }: RecentTransactionsProps) {
   const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const groupTransactionsByDate = (transactions: Transaction[]) => {
@@ -91,9 +185,15 @@ export default function RecentTransactions({ transactions, onDelete, selectedCat
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent>
-                                                    <DropdownMenuItem>
-                                                        <Edit className="mr-2 h-4 w-4" /> Editar
-                                                    </DropdownMenuItem>
+                                                   <EditTransactionDialog 
+                                                     transaction={tx}
+                                                     onSave={onUpdate}
+                                                     trigger={
+                                                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                          <Edit className="mr-2 h-4 w-4" /> Editar
+                                                        </DropdownMenuItem>
+                                                     }
+                                                   />
                                                     <AlertDialog>
                                                         <AlertDialogTrigger asChild>
                                                             <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={e => e.preventDefault()}>

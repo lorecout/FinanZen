@@ -44,7 +44,7 @@ const ShoppingListView = dynamic(() => import('@/components/views/shopping-list-
 
 
 function DashboardPage() {
-  const { user, logout, transactions, goals, bills, shoppingItems, deleteTransaction, addGoal, deleteGoal, updateGoal, addBill, deleteBill, updateBill, addShoppingItem, deleteShoppingItem, updateShoppingItem } = useAuth();
+  const { user, logout, transactions, goals, bills, shoppingItems, deleteTransaction, addGoal, deleteGoal, updateGoal, addBill, deleteBill, updateBill, addShoppingItem, deleteShoppingItem, updateShoppingItem, updateTransaction } = useAuth();
   
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -105,17 +105,23 @@ function DashboardPage() {
         return <DashboardView 
                 transactions={transactions} 
                 deleteTransaction={deleteTransaction}
+                updateTransaction={updateTransaction}
                 goals={goals} 
                 handleContributeToGoal={handleContributeToGoal}
                />;
-      case 'bills':
-         return <>
-            <BillsView bills={bills} addBill={addBill} deleteBill={deleteBill} updateBill={updateBill} />
-        </>;
-      case 'goals': // This is now the "Planejamento" view, which can combine goals and bills
+      case 'planning': // This is now the "Planejamento" view, which can combine goals and bills
         return <>
+            <BillsView bills={bills} addBill={addBill} deleteBill={deleteBill} updateBill={updateBill} />
+            <div className='mt-6' />
             <GoalsView goals={goals} addGoal={addGoal} deleteGoal={deleteGoal} updateGoal={updateGoal} />
         </>;
+      case 'shopping-list':
+        return <ShoppingListView 
+                  items={shoppingItems} 
+                  addItem={addShoppingItem} 
+                  deleteItem={deleteShoppingItem} 
+                  updateItem={updateShoppingItem} 
+                />;
       case 'settings':
          // This is a bit of a hack to avoid a full page reload for settings
         window.location.href = '/configuracoes';
@@ -124,6 +130,7 @@ function DashboardPage() {
         return <DashboardView 
                 transactions={transactions} 
                 deleteTransaction={deleteTransaction}
+                updateTransaction={updateTransaction}
                 goals={goals} 
                 handleContributeToGoal={handleContributeToGoal}
                />;
