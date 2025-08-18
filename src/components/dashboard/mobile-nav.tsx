@@ -29,11 +29,10 @@ export type NavItem = {
 
 export const getNavItems = (): NavItem[] => [
   { id: "dashboard", href: "/", icon: LayoutGrid, label: "Principal" },
-  { id: "bills", href: "/#", icon: Wallet, label: "Transações" }, // Changed to transações
-  // Placeholder for the add button
+  { id: "bills", href: "/#", icon: Wallet, label: "Contas" }, 
   { id: "add", href: "/#add-transaction", icon: Plus, label: "Adicionar" },
-  { id: "goals", href: "/#", icon: Target, label: "Planejamento" }, // Changed to Planejamento
-  { id: "settings", href: "/configuracoes", icon: BookUser, label: "Mais" }, // Changed to "Mais"
+  { id: "goals", href: "/#", icon: Target, label: "Planejamento" }, 
+  { id: "settings", href: "/configuracoes", icon: BookUser, label: "Mais" }, 
 ]
 
 type MobileNavProps = {
@@ -101,25 +100,6 @@ export default function MobileNav({ activeView, setActiveView }: MobileNavProps)
                     if (item.id === 'add') {
                         return (
                            <AddTransactionDialog key={item.id} />
-                        )
-                    }
-
-                    if(item.id === 'bills') {
-                        // For now, this button reloads the page to show all transactions
-                         return (
-                            <button 
-                            key={item.id} 
-                            onClick={() => window.location.reload()}
-                            className={cn("inline-flex flex-col items-center justify-center px-5 hover:bg-muted/50 group focus:outline-none", {
-                                "text-primary": isActive,
-                                "text-muted-foreground": !isActive
-                            })}
-                            >
-                                <item.icon className="w-5 h-5 mb-1" />
-                                <span className="text-xs font-medium">
-                                    {item.label}
-                                </span>
-                            </button>
                         )
                     }
                     

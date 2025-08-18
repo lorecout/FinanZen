@@ -108,12 +108,13 @@ function DashboardPage() {
                 goals={goals} 
                 handleContributeToGoal={handleContributeToGoal}
                />;
-      case 'bills': // This is now the "Transações" view
-        return <RecentTransactions transactions={transactions} onDelete={deleteTransaction} selectedCategory={null} onClearFilter={() => {}} />;
+      case 'bills':
+         return <>
+            <BillsView bills={bills} addBill={addBill} deleteBill={deleteBill} updateBill={updateBill} />
+        </>;
       case 'goals': // This is now the "Planejamento" view, which can combine goals and bills
         return <>
             <GoalsView goals={goals} addGoal={addGoal} deleteGoal={deleteGoal} updateGoal={updateGoal} />
-            <BillsView bills={bills} addBill={addBill} deleteBill={deleteBill} updateBill={updateBill} />
         </>;
       case 'settings':
          // This is a bit of a hack to avoid a full page reload for settings
