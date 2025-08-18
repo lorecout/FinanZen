@@ -179,13 +179,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
   
-  const refreshData = () => {
+  const refreshData = useCallback(() => {
     if (user) {
-      const dataRef = fetchData(user.uid);
-      off(dataRef);
-      fetchData(user.uid);
+      const dataRef = ref(db, 'users/' + user.uid);
+      off(dataRef); // Detach existing listener to avoid duplicates
+      fetchData(user.uid); // Re-attach listener
     }
-  };
+  }, [user, db, fetchData]);
 
   // --- Data Functions ---
   const deleteTransaction = (transactionId: string) => {
@@ -301,4 +301,5 @@ export const useAuth = () => {
   return context;
 };
 
+    
     
