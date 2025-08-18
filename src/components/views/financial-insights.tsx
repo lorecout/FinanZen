@@ -37,7 +37,7 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
     const [isLoading, setIsLoading] = useState(false);
     const [insights, setInsights] = useState<string | null>(null);
     const { toast } = useToast();
-    const { isPremium } = useAuth();
+    const { isPremium, addDummyTransactions } = useAuth();
 
     const getInsights = async () => {
         setIsLoading(true);
@@ -63,6 +63,14 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
             setIsLoading(false);
         }
     };
+    
+    const handleGenerateDummies = () => {
+        addDummyTransactions();
+        toast({
+            title: "Dados de Teste Gerados!",
+            description: "Transações fictícias foram adicionadas à sua conta.",
+        });
+    }
 
 
     return (
@@ -91,6 +99,9 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
 
                     <Button onClick={getInsights} disabled={isLoading} className="w-full">
                         {isLoading ? 'Analisando suas finanças...' : 'Gerar Novos Insights'}
+                    </Button>
+                     <Button onClick={handleGenerateDummies} variant="outline" className="w-full">
+                        Gerar Dados de Teste
                     </Button>
                     </>
                 ) : (

@@ -17,6 +17,7 @@ import { auth, app } from '@/lib/firebase/client-app';
 import { useRouter } from 'next/navigation';
 import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
 import { useToast } from './use-toast';
+import { subDays } from 'date-fns';
 
 // Firebase error handler
 const getFirebaseAuthErrorMessage = (error: any): string => {
@@ -71,6 +72,7 @@ interface AuthContextType {
   refreshData: () => void;
   editCategory: (oldName: string, newName: string) => void;
   deleteCategory: (categoryName: string) => void;
+  addDummyTransactions: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -336,6 +338,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
       }
   };
+  
+  const addDummyTransactions = () => {
+    if (!user) return;
+    
+    const now = new Date();
+    const dummyData: Omit<Transaction, 'id'>[] = [
+      { amount: 5000, description: 'Salário', category: 'Renda', date: subDays(now, 15).toISOString(), type: 'income' },
+      { amount: 1500, description: 'Aluguel', category: 'Moradia', date: subDays(now, 14).toISOString(), type: 'expense' },
+      { amount: 450, description: 'Compras de Supermercado', category: 'Alimentação', date: subDays(now, 12).toISOString(), type: 'expense' },
+      { amount: 120, description: 'Jantar com amigos', category: 'Lazer', date: subDays(now, 10).toISOString(), type: 'expense' },
+      { amount: 80, description: 'Conta de Internet', category: 'Contas', date: subDays(now, 8).toISOString(), type: 'expense' },
+      { amount: 55.90, description: 'Assinatura Netflix', category: 'Lazer', date: subDays(now, 7).toISOString(), type: 'expense' },
+      { amount: 75, description: 'Transporte (Uber/Ônibus)', category: 'Transporte', date: subDays(now, 5).toISOString(), type: 'expense' },
+      { amount: 250, description: 'Roupas', category: 'Compras', date: subDays(now, 3).toISOString(), type: 'expense' },
+    ];
+    
+    const transactionsRef = ref(db, `users/${user.uid}/transactions`);
+    dummyData.forEach(tx => {
+        const newTxRef = push(transactionsRef);
+        set(newTxRef, { ...tx, id: newTxRef.key });
+    });
+  }
 
 
   return (
@@ -365,7 +389,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateShoppingItem,
         refreshData,
         editCategory,
-        deleteCategory
+        deleteCategory,
+        addDummyTransactions
     }}>
       {children}
     </AuthContext.Provider>
@@ -379,5 +404,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-    
