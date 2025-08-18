@@ -346,13 +346,13 @@ function SettingsPage() {
                                     <CheckCircle className="h-4 w-4 mt-1 text-green-500 shrink-0" />
                                     <span>Inclusão manual e controle de transações, metas, contas e lista de compras.</span>
                                 </li>
-                                <li className="flex items-start gap-2">
-                                    <XCircle className="h-4 w-4 mt-1 text-destructive shrink-0" />
-                                    <span>Experiência sem Anúncios</span>
+                                <li className="flex items-start font-semibold text-primary/90 gap-2">
+                                    <Lightbulb className="h-4 w-4 mt-1 text-primary shrink-0" />
+                                    <span>Insights e dicas com Inteligência Artificial.</span>
                                 </li>
-                                <li className="flex items-start gap-2">
+                                 <li className="flex items-start gap-2">
                                     <XCircle className="h-4 w-4 mt-1 text-destructive shrink-0" />
-                                    <span>Insights Financeiros com IA</span>
+                                    <span>Suporte prioritário</span>
                                 </li>
                             </ul>
                         </CardContent>
@@ -366,7 +366,7 @@ function SettingsPage() {
                         {isPremium && <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">SEU PLANO</div>}
                         <CardHeader>
                             <CardTitle className='text-xl font-headline'>Premium</CardTitle>
-                            <CardDescription>Sua experiência completa para dominar suas finanças, com um toque de inteligência.</CardDescription>
+                            <CardDescription>Apoie o desenvolvimento do app e tenha acesso a vantagens.</CardDescription>
                         </CardHeader>
                         <CardContent className='flex-grow'>
                             <p className="text-2xl font-bold">R$ 9,90<span className='text-sm font-normal text-muted-foreground'>/mês</span></p>
@@ -377,17 +377,17 @@ function SettingsPage() {
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <CheckCircle className="h-4 w-4 mt-1 text-green-500 shrink-0" />
-                                    <span>Experiência 100% livre de anúncios.</span>
+                                    <span>Suporte prioritário por email.</span>
                                 </li>
-                                <li className="flex items-start font-semibold text-primary/90 gap-2">
-                                    <Lightbulb className="h-4 w-4 mt-1 text-primary shrink-0" />
-                                    <span>Insights e dicas com Inteligência Artificial.</span>
+                                 <li className="flex items-start gap-2">
+                                    <CheckCircle className="h-4 w-4 mt-1 text-green-500 shrink-0" />
+                                    <span>Acesso antecipado a novos recursos.</span>
                                 </li>
                             </ul>
                         </CardContent>
                         <CardFooter>
                              <Button className='w-full' onClick={handleUpgrade} disabled={isPremium}>
-                                {isPremium ? "Seu Plano Premium" : <><Zap className='mr-2 h-4 w-4' /> Testar Premium por 30 Dias Grátis</>}
+                                {isPremium ? "Obrigado pelo seu apoio!" : <><Zap className='mr-2 h-4 w-4' /> Apoiar o Projeto</>}
                             </Button>
                         </CardFooter>
                     </Card>
@@ -437,5 +437,3 @@ export default function Settings() {
         </AuthGuard>
     )
 }
-
-    

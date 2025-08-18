@@ -37,7 +37,7 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
     const [isLoading, setIsLoading] = useState(false);
     const [insights, setInsights] = useState<string | null>(null);
     const { toast } = useToast();
-    const { isPremium, addDummyTransactions } = useAuth();
+    const { addDummyTransactions } = useAuth();
     
     const hasTransactions = transactions && transactions.length > 0;
 
@@ -81,42 +81,31 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-headline text-xl">
                     <Lightbulb className="text-primary" />
-                    Insights Financeiros (Premium)
+                    Insights Financeiros com IA
                 </CardTitle>
                 <CardDescription>
                    Deixe nossa IA analisar suas finanças e te dar dicas valiosas para economizar.
                 </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
-                {isPremium ? (
-                    <>
-                    {isLoading ? (
-                        <div className="flex items-center justify-center h-24">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        </div>
-                    ) : insights ? (
-                        <div className="p-4 bg-background/50 rounded-lg">
-                           <MarkdownRenderer content={insights} />
-                        </div>
-                    ) : null}
-
-                    <Button onClick={getInsights} disabled={isLoading || !hasTransactions} className="w-full">
-                        {isLoading ? 'Analisando suas finanças...' : 'Gerar Novos Insights'}
-                    </Button>
-                     <Button onClick={handleGenerateDummies} variant="outline" className="w-full">
-                        Gerar Dados de Teste
-                    </Button>
-                    </>
-                ) : (
-                    <div className='text-center p-4 bg-background/50 rounded-lg flex flex-col items-center gap-4'>
-                        <p className='font-medium'>Este é um recurso exclusivo para assinantes Premium.</p>
-                        <Button asChild>
-                           <Link href="/configuracoes">
-                                <Zap className='mr-2 h-4 w-4' /> Fazer Upgrade Agora
-                           </Link>
-                        </Button>
+                <>
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-24">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
-                )}
+                ) : insights ? (
+                    <div className="p-4 bg-background/50 rounded-lg">
+                       <MarkdownRenderer content={insights} />
+                    </div>
+                ) : null}
+
+                <Button onClick={getInsights} disabled={isLoading || !hasTransactions} className="w-full">
+                    {isLoading ? 'Analisando suas finanças...' : 'Gerar Novos Insights'}
+                </Button>
+                 <Button onClick={handleGenerateDummies} variant="outline" className="w-full">
+                    Gerar Dados de Teste
+                </Button>
+                </>
             </CardContent>
         </Card>
     );

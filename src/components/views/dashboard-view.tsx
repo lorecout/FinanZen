@@ -168,8 +168,6 @@ export default function DashboardView({ transactions, deleteTransaction, updateT
       </div>
         <div className="grid gap-4 md:gap-6">
        
-        {!isPremium && <AdCard />}
-        
         <RecentTransactions 
           transactions={filteredTransactions} 
           onDelete={deleteTransaction}
