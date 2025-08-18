@@ -30,7 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useAuth } from '@/hooks/use-auth';
 import RecentTransactions from '../dashboard/recent-transactions';
 import { cn } from '@/lib/utils';
-import AdCard from '../dashboard/ad-card';
+import AdBanner from '../dashboard/ad-banner';
 
 
 type DashboardViewProps = {
@@ -183,6 +183,7 @@ export default function DashboardView({ transactions, deleteTransaction, updateT
            <AiTransactionForm onAddTransaction={refreshData} addBill={addBill} />
         </div>
       </div>
+      {!isPremium && <AdBanner />}
     </>
   )
 }
