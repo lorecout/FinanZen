@@ -89,8 +89,8 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
                         </div>
                     ) : null}
 
-                    <Button onClick={getInsights} disabled={isLoading || transactions.length < 3} className="w-full">
-                        {transactions.length < 3 ? "Adicione mais transações para gerar insights" : (isLoading ? 'Analisando suas finanças...' : 'Gerar Novos Insights')}
+                    <Button onClick={getInsights} disabled={isLoading} className="w-full">
+                        {isLoading ? 'Analisando suas finanças...' : 'Gerar Novos Insights'}
                     </Button>
                     </>
                 ) : (
