@@ -115,7 +115,7 @@ function EditCategoryDialog({ category, onSave, trigger }: EditCategoryDialogPro
 function SettingsPage() {
   
   const { toast } = useToast();
-  const { user, logout, isPremium, upgradeToPremium, transactions, editCategory, deleteCategory } = useAuth();
+  const { user, logout, isPremium, upgradeToPremium, transactions, editCategory, deleteCategory, resetAllData } = useAuth();
   
   const getInitials = (name: string) => {
     if (!name) return 'U';
@@ -132,13 +132,20 @@ function SettingsPage() {
   }, [transactions]);
 
 
-  const handleResetData = () => {
-     toast({
-        title: "Dados Resetados!",
-        description: "Todos os dados da aplicação foram apagados.",
-    });
-    // In a real app, you would call a server action to delete user data from the database.
-    // For now, we just show a toast.
+  const handleResetData = async () => {
+    try {
+        await resetAllData();
+        toast({
+            title: "Dados Resetados!",
+            description: "Todos os dados da sua conta foram apagados com sucesso.",
+        });
+    } catch(error: any) {
+        toast({
+            variant: "destructive",
+            title: "Erro ao Resetar",
+            description: error.message || "Não foi possível apagar os dados. Tente novamente.",
+        });
+    }
   }
 
   const handleShare = async () => {
@@ -437,3 +444,5 @@ export default function Settings() {
         </AuthGuard>
     )
 }
+
+    

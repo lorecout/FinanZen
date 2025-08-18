@@ -72,6 +72,7 @@ interface AuthContextType {
   refreshData: () => void;
   editCategory: (oldName: string, newName: string) => void;
   deleteCategory: (categoryName: string) => void;
+  resetAllData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -337,6 +338,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
       }
   };
+  
+  const resetAllData = async () => {
+    if (!user) {
+        throw new Error("Usuário não autenticado.");
+    }
+    const userRef = ref(db, `users/${user.uid}`);
+    await remove(userRef);
+    // The onValue listener will automatically clear local state
+  };
 
 
   return (
@@ -367,6 +377,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         refreshData,
         editCategory,
         deleteCategory,
+        resetAllData,
     }}>
       {children}
     </AuthContext.Provider>
@@ -380,3 +391,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    
