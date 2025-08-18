@@ -12,6 +12,8 @@ import {
   XCircle,
   Lightbulb,
   ArrowLeft,
+  Edit,
+  MoreVertical,
 } from "lucide-react"
 
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -50,11 +52,70 @@ import { useToast } from '@/hooks/use-toast';
 import AuthGuard from '@/components/auth-guard';
 import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+
+type EditCategoryDialogProps = {
+  category: string;
+  onSave: (oldName: string, newName: string) => void;
+  trigger: React.ReactNode;
+}
+
+function EditCategoryDialog({ category, onSave, trigger }: EditCategoryDialogProps) {
+  const [newName, setNewName] = useState(category);
+  const [open, setOpen] = useState(false);
+
+  const handleSave = () => {
+    if (!newName.trim() || newName === category) {
+      setOpen(false);
+      return;
+    }
+    onSave(category, newName.trim());
+    setOpen(false);
+  };
+  
+  React.useEffect(() => {
+    if(open) {
+      setNewName(category);
+    }
+  }, [open, category]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Editar Categoria</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right">
+              Nome
+            </Label>
+            <Input
+              id="name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+           <DialogClose asChild>
+            <Button variant="outline">Cancelar</Button>
+          </DialogClose>
+          <Button type="submit" onClick={handleSave}>Salvar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 function SettingsPage() {
   
   const { toast } = useToast();
-  const { user, logout, isPremium, upgradeToPremium } = useAuth();
+  const { user, logout, isPremium, upgradeToPremium, transactions, editCategory, deleteCategory } = useAuth();
   
   const getInitials = (name: string) => {
     if (!name) return 'U';
@@ -62,6 +123,13 @@ function SettingsPage() {
     const initials = names.map(n => n[0]).join('');
     return initials.toUpperCase().slice(0, 2);
   }
+
+  const uniqueCategories = useMemo(() => {
+    const expenseCategories = transactions
+      .filter(t => t.type === 'expense')
+      .map(t => t.category);
+    return [...new Set(expenseCategories)].sort();
+  }, [transactions]);
 
 
   const handleResetData = () => {
@@ -98,6 +166,22 @@ function SettingsPage() {
       title: "Parabéns!",
       description: "Você agora é um usuário Premium! Aproveite todos os recursos.",
       className: "bg-green-500 text-white"
+    })
+  }
+
+  const handleEditCategory = (oldName: string, newName: string) => {
+    editCategory(oldName, newName);
+    toast({
+      title: "Categoria Atualizada",
+      description: `A categoria "${oldName}" foi renomeada para "${newName}".`,
+    })
+  }
+  
+  const handleDeleteCategory = (categoryName: string) => {
+    deleteCategory(categoryName);
+     toast({
+      title: "Categoria Excluída",
+      description: `A categoria "${categoryName}" foi excluída e as transações movidas para "Outros".`,
     })
   }
 
@@ -183,6 +267,64 @@ function SettingsPage() {
                             <Share2 className='mr-2 h-4 w-4' /> Compartilhar
                         </Button>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Gerenciar Categorias de Despesa</CardTitle>
+                    <CardDescription>Edite ou exclua as categorias para manter suas finanças organizadas.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ul className="divide-y divide-border">
+                        {uniqueCategories.map(category => (
+                            <li key={category} className="flex items-center justify-between py-3">
+                                <span className='font-medium'>{category}</span>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className='h-8 w-8'>
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <EditCategoryDialog 
+                                            category={category} 
+                                            onSave={handleEditCategory}
+                                            trigger={
+                                                <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                                                    <Edit className="mr-2 h-4 w-4" /> Editar
+                                                </DropdownMenuItem>
+                                            }
+                                        />
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={e => e.preventDefault()}>
+                                                    <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Excluir categoria "{category}"?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Esta ação não pode ser desfeita. Todas as transações nesta categoria serão movidas para "Outros".
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeleteCategory(category)} className={cn(buttonVariants({variant: 'destructive'}))}>
+                                                        Sim, excluir
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </li>
+                        ))}
+                    </ul>
+                     {uniqueCategories.length === 0 && (
+                        <p className='text-center text-muted-foreground py-4'>Nenhuma categoria de despesa encontrada.</p>
+                     )}
                 </CardContent>
             </Card>
 
@@ -295,3 +437,5 @@ export default function Settings() {
         </AuthGuard>
     )
 }
+
+    

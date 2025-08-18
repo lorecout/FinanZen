@@ -12,7 +12,7 @@ import {
     signOut,
     getIdToken,
 } from 'firebase/auth';
-import { getDatabase, ref, onValue, set, push, remove, update, off } from "firebase/database";
+import { getDatabase, ref, onValue, set, push, remove, update, off, get, child, Unsubscribe } from "firebase/database";
 import { auth, app } from '@/lib/firebase/client-app';
 import { useRouter } from 'next/navigation';
 import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
@@ -68,6 +68,8 @@ interface AuthContextType {
   deleteShoppingItem: (itemId: string) => void;
   updateShoppingItem: (item: ShoppingItem) => void;
   refreshData: () => void;
+  editCategory: (oldName: string, newName: string) => void;
+  deleteCategory: (categoryName: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -88,9 +90,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Firebase Realtime Database
   const db = getDatabase(app);
   
-  const fetchData = useCallback((userId: string) => {
+  const fetchData = useCallback((userId: string): Unsubscribe => {
     const dataRef = ref(db, 'users/' + userId);
-    onValue(dataRef, (snapshot) => {
+    return onValue(dataRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
             setTransactions(data.transactions ? Object.values(data.transactions) : []);
@@ -107,20 +109,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setIsPremium(false);
         }
     });
-    return dataRef;
   }, [db]);
 
 
   useEffect(() => {
-    let dataRef: any;
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    let unsubscribeFromData: Unsubscribe | undefined;
+    const unsubscribeFromAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
-        dataRef = fetchData(user.uid);
+        unsubscribeFromData = fetchData(user.uid);
       } else {
         setUser(null);
-        if (dataRef) {
-          off(dataRef); // Detach listener
+        if (unsubscribeFromData) {
+          unsubscribeFromData(); // Detach listener
         }
         setTransactions([]);
         setGoals([]);
@@ -132,9 +133,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     return () => {
-      unsubscribe();
-      if (dataRef) {
-        off(dataRef);
+      unsubscribeFromAuth();
+      if (unsubscribeFromData) {
+        unsubscribeFromData();
       }
     };
   }, [fetchData]);
@@ -182,11 +183,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const refreshData = useCallback(() => {
     if (user) {
-      const dataRef = ref(db, 'users/' + user.uid);
-      off(dataRef); // Detach existing listener to avoid duplicates
-      fetchData(user.uid); // Re-attach listener
+      const unsubscribe = fetchData(user.uid);
+      unsubscribe();
     }
-  }, [user, db, fetchData]);
+  }, [user, fetchData]);
 
   // --- Data Functions ---
   const deleteTransaction = (transactionId: string) => {
@@ -268,6 +268,43 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         update(itemRef, item);
     }
   };
+  
+  // --- Category Management Functions ---
+  const editCategory = async (oldName: string, newName: string) => {
+    if (!user) return;
+    const transactionsRef = ref(db, `users/${user.uid}/transactions`);
+    const snapshot = await get(transactionsRef);
+    if (snapshot.exists()) {
+        const updates: { [key: string]: any } = {};
+        snapshot.forEach((childSnapshot) => {
+            const tx = childSnapshot.val() as Transaction;
+            if (tx.category === oldName) {
+                updates[`/${childSnapshot.key}/category`] = newName;
+            }
+        });
+        if (Object.keys(updates).length > 0) {
+            await update(transactionsRef, updates);
+        }
+    }
+  };
+  
+  const deleteCategory = async (categoryName: string) => {
+      if (!user) return;
+      const transactionsRef = ref(db, `users/${user.uid}/transactions`);
+      const snapshot = await get(transactionsRef);
+      if (snapshot.exists()) {
+          const updates: { [key: string]: any } = {};
+          snapshot.forEach((childSnapshot) => {
+              const tx = childSnapshot.val() as Transaction;
+              if (tx.category === categoryName) {
+                  updates[`/${childSnapshot.key}/category`] = 'Outros';
+              }
+          });
+          if (Object.keys(updates).length > 0) {
+              await update(transactionsRef, updates);
+          }
+      }
+  };
 
 
   return (
@@ -295,7 +332,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addShoppingItem,
         deleteShoppingItem,
         updateShoppingItem,
-        refreshData
+        refreshData,
+        editCategory,
+        deleteCategory
     }}>
       {children}
     </AuthContext.Provider>
@@ -309,3 +348,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+    
