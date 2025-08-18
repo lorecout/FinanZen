@@ -41,7 +41,7 @@ type DashboardViewProps = {
 export default function DashboardView({ transactions, deleteTransaction, goals, handleContributeToGoal }: DashboardViewProps) {
   const [timePeriod, setTimePeriod] = useState('this-month');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const { isPremium, refreshData } = useAuth();
+  const { isPremium, refreshData, addBill } = useAuth();
 
   const filteredByTime = useMemo(() => {
     if (!transactions) return [];
@@ -152,7 +152,7 @@ export default function DashboardView({ transactions, deleteTransaction, goals, 
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AiTransactionForm onAddTransaction={refreshData} />
+            <AiTransactionForm onAddTransaction={refreshData} addBill={addBill} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">

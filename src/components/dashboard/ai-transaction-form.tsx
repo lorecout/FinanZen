@@ -3,26 +3,62 @@
 
 import { useState, useRef, FormEvent } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "../ui/card";
 import { analyzeTransaction, type AnalyzeTransactionOutput } from "@/ai/flows/transaction-analyzer";
-import type { Transaction } from "@/types";
+import type { Bill, Transaction } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
 import { getAuth, getIdToken } from "firebase/auth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { addMonths, formatISO } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type AiTransactionFormProps = {
-  onAddTransaction: (data: Omit<Transaction, 'id'>) => void;
+  onAddTransaction: () => void;
+  addBill: (bill: Omit<Bill, "id">) => void;
 };
 
-export default function AiTransactionForm({ onAddTransaction }: AiTransactionFormProps) {
+export default function AiTransactionForm({ onAddTransaction, addBill }: AiTransactionFormProps) {
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [lastTransaction, setLastTransaction] = useState<AnalyzeTransactionOutput | null>(null);
+  const [showRecurringDialog, setShowRecurringDialog] = useState(false);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
-  const { refreshData } = useAuth(); // Assuming useAuth provides a way to trigger data refresh
+  const { refreshData } = useAuth();
+
+  const handleRecurringConfirmation = () => {
+    if (!lastTransaction) return;
+
+    const nextMonth = addMonths(new Date(), 1);
+    
+    const newBill: Omit<Bill, "id"> = {
+        name: lastTransaction.description,
+        amount: lastTransaction.amount,
+        dueDate: formatISO(nextMonth, { representation: 'date' }),
+        status: 'due'
+    }
+
+    addBill(newBill);
+    toast({
+        title: "Conta Adicionada!",
+        description: `"${lastTransaction.description}" foi adicionada à sua lista de contas a pagar.`,
+    })
+    setShowRecurringDialog(false);
+    setLastTransaction(null);
+  }
+
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -40,8 +76,6 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
     try {
       // 1. Analyze the text to get transaction details
       const analyzeResult = await analyzeTransaction({ text });
-      
-      setLastTransaction(analyzeResult);
       
       const transactionData: Omit<Transaction, 'id'> = {
         ...analyzeResult,
@@ -78,6 +112,15 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
         title: "Sucesso!",
         description: "Sua transação foi adicionada com segurança.",
       });
+      
+      setLastTransaction(analyzeResult);
+
+      if(analyzeResult.isRecurring) {
+        setShowRecurringDialog(true);
+      } else {
+        setLastTransaction(analyzeResult);
+      }
+
 
       formRef.current?.reset();
       setText("");
@@ -96,6 +139,7 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
   };
 
   return (
+    <>
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
       <div className="relative">
         <Textarea
@@ -113,7 +157,7 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
         {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Analisando...</> : "Adicionar Transação"}
         <Sparkles className="ml-2 h-4 w-4" />
       </Button>
-      {lastTransaction && (
+      {lastTransaction && !showRecurringDialog && (
         <Card className="bg-muted/50">
           <CardContent className="p-4 text-sm">
             <h4 className="font-semibold mb-2">Dados da Última Transação Adicionada:</h4>
@@ -131,7 +175,23 @@ export default function AiTransactionForm({ onAddTransaction }: AiTransactionFor
         </Card>
       )}
     </form>
+    
+      <AlertDialog open={showRecurringDialog} onOpenChange={setShowRecurringDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conta Recorrente Detectada!</AlertDialogTitle>
+            <AlertDialogDescription>
+              Percebemos que "{lastTransaction?.description}" parece ser uma conta recorrente. Deseja adicioná-la à sua lista de "Contas a Pagar" para ser lembrado(a) nos próximos meses?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setLastTransaction(null)}>Não, obrigado</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRecurringConfirmation}>
+              Sim, adicionar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
-
-    
