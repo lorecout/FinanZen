@@ -27,6 +27,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
+import { useToast } from '@/hooks/use-toast';
 
 // Dynamic imports for view components
 const DashboardView = dynamic(() => import('@/components/views/dashboard-view'), {
@@ -45,7 +46,7 @@ const ShoppingListView = dynamic(() => import('@/components/views/shopping-list-
 
 function DashboardPage() {
   const { user, logout, transactions, goals, bills, shoppingItems, deleteTransaction, addGoal, deleteGoal, updateGoal, addBill, deleteBill, updateBill, addShoppingItem, deleteShoppingItem, updateShoppingItem, updateTransaction } = useAuth();
-  
+  const { toast } = useToast();
   const [activeView, setActiveView] = useState('dashboard');
 
   const navItems = useMemo(() => getNavItems(), []);
@@ -59,7 +60,22 @@ function DashboardPage() {
   
   const handleContributeToGoal = async (goalId: string, amount: number) => {
     const goal = goals.find(g => g.id === goalId);
-    if (!goal) return;
+    if (!goal) {
+       toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Meta não encontrada. Não foi possível adicionar a contribuição.",
+      });
+      return;
+    }
+     if (amount <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Valor Inválido",
+        description: "O valor da contribuição deve ser positivo.",
+      });
+      return;
+    }
 
     // Add to goal
     const updatedGoal: Goal = {
@@ -92,9 +108,19 @@ function DashboardPage() {
             updateGoal(goal);
             throw new Error('Falha ao registrar a contribuição como uma transação.');
         }
+        toast({
+            title: "Sucesso!",
+            description: `Sua contribuição de R$ ${amount.toFixed(2)} para "${goal.name}" foi adicionada!`,
+        });
     } catch(error) {
         console.error(error);
-        // Handle error, maybe show a toast
+        toast({
+            variant: "destructive",
+            title: "Erro na Transação",
+            description: "Não foi possível salvar a transação de contribuição.",
+        });
+        // Revert goal update on error
+        updateGoal(goal);
     }
   };
 
@@ -113,7 +139,7 @@ function DashboardPage() {
         return <>
             <BillsView bills={bills} addBill={addBill} deleteBill={deleteBill} updateBill={updateBill} />
             <div className='mt-6' />
-            <GoalsView goals={goals} addGoal={addGoal} deleteGoal={deleteGoal} updateGoal={updateGoal} />
+            <GoalsView goals={goals} addGoal={addGoal} deleteGoal={deleteGoal} updateGoal={updateGoal} handleContribute={handleContributeToGoal} />
         </>;
       case 'shopping-list':
         return <ShoppingListView 

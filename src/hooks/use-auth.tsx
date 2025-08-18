@@ -16,6 +16,7 @@ import { getDatabase, ref, onValue, set, push, remove, update, off, get, child, 
 import { auth, app } from '@/lib/firebase/client-app';
 import { useRouter } from 'next/navigation';
 import { type Transaction, type Goal, type Bill, type ShoppingItem } from '@/types';
+import { useToast } from './use-toast';
 
 // Firebase error handler
 const getFirebaseAuthErrorMessage = (error: any): string => {
@@ -79,6 +80,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   // Data states
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -108,8 +110,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setShoppingItems([]);
             setIsPremium(false);
         }
+    }, (error) => {
+        console.error("Firebase data fetching error:", error);
+        toast({
+            variant: "destructive",
+            title: "Erro de Conexão",
+            description: "Não foi possível carregar seus dados. Verifique sua conexão e tente novamente."
+        })
+        // Clear local data on error to prevent showing stale info
+        setTransactions([]);
+        setGoals([]);
+        setBills([]);
+        setShoppingItems([]);
+        setIsPremium(false);
     });
-  }, [db]);
+  }, [db, toast]);
 
 
   useEffect(() => {
@@ -183,10 +198,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   const refreshData = useCallback(() => {
     if (user) {
-      const unsubscribe = fetchData(user.uid);
-      unsubscribe();
+      const dataRef = ref(db, 'users/' + user.uid);
+      get(dataRef).then((snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            setTransactions(data.transactions ? Object.values(data.transactions) : []);
+            setGoals(data.goals ? Object.values(data.goals) : []);
+            setBills(data.bills ? Object.values(data.bills) : []);
+            setShoppingItems(data.shoppingItems ? Object.values(data.shoppingItems) : []);
+            setIsPremium(data.isPremium || false);
+        }
+      }).catch((error) => {
+         console.error("Firebase data refresh error:", error);
+         toast({
+            variant: "destructive",
+            title: "Erro de Sincronização",
+            description: "Não foi possível atualizar seus dados."
+        })
+      })
     }
-  }, [user, fetchData]);
+  }, [user, db, toast]);
 
   // --- Data Functions ---
   const deleteTransaction = (transactionId: string) => {

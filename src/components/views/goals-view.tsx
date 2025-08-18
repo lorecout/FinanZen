@@ -53,6 +53,7 @@ import { Label } from "@/components/ui/label"
 import type { Goal } from '@/types';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 type GoalDialogProps = {
   goal?: Goal | null;
@@ -65,9 +66,17 @@ function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) 
   const [name, setName] = useState(goal?.name || '');
   const [targetAmount, setTargetAmount] = useState(goal?.targetAmount.toString() || '');
   const [open, setOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleSave = () => {
-    if(!name || !targetAmount) return;
+    if(!name || !targetAmount) {
+       toast({ variant: "destructive", title: "Erro", description: "Por favor, preencha todos os campos." });
+       return;
+    }
+    if(Number(targetAmount) <= 0) {
+        toast({ variant: "destructive", title: "Erro", description: "O valor alvo deve ser maior que zero." });
+        return;
+    }
     
     if (isEdit && goal) {
         const editedGoal: Goal = {
@@ -147,13 +156,13 @@ function GoalDialog({ goal, onSave, trigger, isEdit = false }: GoalDialogProps) 
   );
 }
 
-function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; onContribute: (goal: Goal, amount: number) => void; trigger: React.ReactNode }) {
+function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; onContribute: (goalId: string, amount: number) => void; trigger: React.ReactNode }) {
   const [amount, setAmount] = useState('');
   const [open, setOpen] = useState(false);
 
   const handleContribute = () => {
     if(!amount || Number(amount) <= 0) return;
-    onContribute(goal, Number(amount));
+    onContribute(goal.id, Number(amount));
     setAmount('');
     setOpen(false);
   };
@@ -165,7 +174,7 @@ function AddContributionDialog({ goal, onContribute, trigger }: { goal: Goal; on
         <DialogHeader>
           <DialogTitle>Adicionar Contribuição</DialogTitle>
           <DialogDescription>
-            Quanto você gostaria de adicionar para a meta "{goal.name}"?
+            Quanto você gostaria de adicionar para a meta "{goal.name}"? Este valor será registrado como uma nova despesa.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -199,17 +208,11 @@ type GoalsViewProps = {
     addGoal: (goal: Omit<Goal, 'id'>) => void;
     deleteGoal: (goalId: string) => void;
     updateGoal: (goal: Goal) => void;
+    handleContribute: (goalId: string, amount: number) => void;
 }
 
-export default function GoalsView({ goals, addGoal, deleteGoal, updateGoal }: GoalsViewProps) {
+export default function GoalsView({ goals, addGoal, deleteGoal, updateGoal, handleContribute }: GoalsViewProps) {
   
-  const handleContribute = (goal: Goal, amount: number) => {
-    const updatedGoal = { ...goal, currentAmount: goal.currentAmount + amount };
-    updateGoal(updatedGoal);
-    // Note: In a real app, you might want to create a transaction here as well
-  };
-
-
   return (
     <>
        <div className='flex justify-between items-center mb-4 md:mb-6'>
