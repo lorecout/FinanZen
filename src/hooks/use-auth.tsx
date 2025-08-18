@@ -339,7 +339,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
   };
   
-  const addDummyTransactions = () => {
+  const addDummyTransactions = async () => {
     if (!user) return;
     
     const now = new Date();
@@ -355,10 +355,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     ];
     
     const transactionsRef = ref(db, `users/${user.uid}/transactions`);
-    dummyData.forEach(tx => {
-        const newTxRef = push(transactionsRef);
-        set(newTxRef, { ...tx, id: newTxRef.key });
-    });
+    for (const tx of dummyData) {
+      const newTxRef = push(transactionsRef);
+      await set(newTxRef, { ...tx, id: newTxRef.key });
+    }
+    
+    refreshData();
   }
 
 

@@ -38,6 +38,8 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
     const [insights, setInsights] = useState<string | null>(null);
     const { toast } = useToast();
     const { isPremium, addDummyTransactions } = useAuth();
+    
+    const hasTransactions = transactions && transactions.length > 0;
 
     const getInsights = async () => {
         setIsLoading(true);
@@ -47,6 +49,7 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
             if (result.success && result.data) {
                 setInsights(result.data);
             } else {
+                 setInsights(result.message); // Display error or info message from backend
                 toast({
                     variant: 'destructive',
                     title: 'Erro ao gerar insights',
@@ -97,7 +100,7 @@ export default function FinancialInsights({ transactions }: FinancialInsightsPro
                         </div>
                     ) : null}
 
-                    <Button onClick={getInsights} disabled={isLoading} className="w-full">
+                    <Button onClick={getInsights} disabled={isLoading || !hasTransactions} className="w-full">
                         {isLoading ? 'Analisando suas finanças...' : 'Gerar Novos Insights'}
                     </Button>
                      <Button onClick={handleGenerateDummies} variant="outline" className="w-full">
