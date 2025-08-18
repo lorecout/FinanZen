@@ -195,7 +195,7 @@ function SettingsPage() {
                     <Card className='flex flex-col'>
                         <CardHeader>
                             <CardTitle className='text-xl font-headline'>Gratuito</CardTitle>
-                            <CardDescription>O essencial para organizar suas finanças manualmente, com suporte de anúncios.</CardDescription>
+                            <CardDescription>O essencial para organizar suas finanças manualmente.</CardDescription>
                         </CardHeader>
                         <CardContent className='flex-grow'>
                             <p className="text-2xl font-bold">R$ 0<span className='text-sm font-normal text-muted-foreground'>/mês</span></p>

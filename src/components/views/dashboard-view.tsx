@@ -30,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useAuth } from '@/hooks/use-auth';
 import RecentTransactions from '../dashboard/recent-transactions';
 import { cn } from '@/lib/utils';
+import AdCard from '../dashboard/ad-card';
 
 
 type DashboardViewProps = {
@@ -164,19 +165,7 @@ export default function DashboardView({ transactions, deleteTransaction, goals, 
       </div>
         <div className="grid gap-4 md:gap-6">
        
-        {!isPremium && (
-            <Card className='w-full bg-primary/10 border-primary/20'>
-                <CardContent className='p-4 !pb-2 flex-col sm:flex-row flex items-center justify-center text-center gap-4 sm:text-left'>
-                    <div className='w-full flex-1 space-y-1'>
-                        <CardTitle className='text-lg font-headline text-primary/90'>Desbloqueie todo o potencial!</CardTitle>
-                        <CardDescription className='text-primary/80'>Assine o Premium para ter insights com IA e uma experiência sem anúncios.</CardDescription>
-                    </div>
-                     <Link href="/configuracoes">
-                        <Button>Ver Planos</Button>
-                    </Link>
-                </CardContent>
-            </Card>
-        )}
+        {!isPremium && <AdCard />}
         
         <RecentTransactions 
           transactions={filteredTransactions} 
