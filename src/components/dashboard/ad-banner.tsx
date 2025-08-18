@@ -3,12 +3,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition, BannerAdPluginEvents, AdMobError } from '@capacitor-community/admob';
-import { isPlatform } from '@capacitor/core';
+import { Capacitor, isPlatform } from '@capacitor/core';
 import { useAuth } from '@/hooks/use-auth';
 
 const AdBanner: React.FC = () => {
     const { isPremium } = useAuth();
     const [isAdInitialized, setIsAdInitialized] = useState(false);
+    const [showAdPlaceholder, setShowAdPlaceholder] = useState(false);
 
     const showBanner = async () => {
         const options: BannerAdOptions = {
@@ -43,25 +44,25 @@ const AdBanner: React.FC = () => {
     useEffect(() => {
         const initializeAdMob = async () => {
             try {
-                await AdMob.initialize({
-                    requestTrackingAuthorization: true,
-                    testingDevices: [],
-                    initializeForTesting: true,
-                });
-                setIsAdInitialized(true);
+                // Only run on native platforms
+                if (Capacitor.isNativePlatform()) {
+                    await AdMob.initialize({
+                        requestTrackingAuthorization: true,
+                        testingDevices: [],
+                        initializeForTesting: true,
+                    });
+                    setIsAdInitialized(true);
+                }
             } catch (e) {
                 console.error("AdMob Initialization Error:", e);
             }
         }
         
-        // Only run on native platforms
-        if (isPlatform('android') || isPlatform('ios')) {
-           initializeAdMob();
-        }
+       initializeAdMob();
     }, []);
 
     useEffect(() => {
-        if (!isAdInitialized || !isPlatform('android') && !isPlatform('ios')) {
+        if (!isAdInitialized || !Capacitor.isNativePlatform()) {
             return;
         }
 
@@ -77,10 +78,20 @@ const AdBanner: React.FC = () => {
         }
 
     }, [isPremium, isAdInitialized]);
+    
+    useEffect(() => {
+        // This check needs to run on the client side
+        if (!isPremium && Capacitor.isNativePlatform()) {
+            setShowAdPlaceholder(true);
+        } else {
+            setShowAdPlaceholder(false);
+        }
+    }, [isPremium]);
+
 
     // This component does not render anything itself, it just controls the native banner.
     // We add an empty div with padding to prevent the ad from overlaying content.
-    if (!isPremium && (isPlatform('android') || isPlatform('ios'))) {
+    if (showAdPlaceholder) {
         return <div className="pb-12 md:pb-14"></div>;
     }
 
